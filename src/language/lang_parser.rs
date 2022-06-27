@@ -18,7 +18,7 @@ fn int<'a>() -> RcParser<'a, Expr> {
         .map(Expr::Int)
 }
 
-pub fn string_ident<'a>() -> RcParser<'a, String> {
+fn string_ident<'a>() -> RcParser<'a, String> {
     let mut allowed_chars = Vec::new();
     for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".chars() {
         allowed_chars.push(c);
@@ -30,7 +30,7 @@ pub fn string_ident<'a>() -> RcParser<'a, String> {
         .ws()
 }
 
-pub fn string_symbol<'a>() -> RcParser<'a, Expr> {
+fn string_symbol<'a>() -> RcParser<'a, Expr> {
     let mut allowed_chars = Vec::new();
     for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".chars() {
         allowed_chars.push(c);
@@ -42,18 +42,16 @@ pub fn string_symbol<'a>() -> RcParser<'a, Expr> {
         .map(Expr::Symbol)
 }
 
-pub fn bool<'a>() -> RcParser<'a, Expr> {
+fn bool<'a>() -> RcParser<'a, Expr> {
     let true_ = pstring("true");
     let false_ = pstring("false");
     true_.or(false_).map(|s| Expr::Bool(s == "true"))
 }
 
-pub fn math<'a>(symbol: char, expr: Rc<ForwardParser<'a, Expr>>) -> RcParser<'a, (Expr, Expr)> {
+fn math(symbol: char, expr: Rc<ForwardParser<Expr>>) -> RcParser<(Expr, Expr)> {
     let lparen = pchar('(').ws();
     let rparen = pchar(')').ws();
     let plus = pchar(symbol).ws();
-
-    //let expr = int();
 
     lparen
         .right(expr.clone())
@@ -62,19 +60,19 @@ pub fn math<'a>(symbol: char, expr: Rc<ForwardParser<'a, Expr>>) -> RcParser<'a,
         .left(rparen)
 }
 
-pub fn add<'a>(expr: Rc<ForwardParser<'a, Expr>>) -> RcParser<'a, Expr> {
+fn add(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
     math('+', expr).map(|(lhs, rhs)| Expr::Add(Box::new(lhs), Box::new(rhs)))
 }
 
-pub fn subtract<'a>(expr: Rc<ForwardParser<'a, Expr>>) -> RcParser<'a, Expr> {
+fn subtract(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
     math('-', expr).map(|(lhs, rhs)| Expr::Subtract(Box::new(lhs), Box::new(rhs)))
 }
 
-pub fn multiply<'a>(expr: Rc<ForwardParser<'a, Expr>>) -> RcParser<'a, Expr> {
+fn multiply(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
     math('*', expr).map(|(lhs, rhs)| Expr::Multiply(Box::new(lhs), Box::new(rhs)))
 }
 
-pub fn divide<'a>(expr: Rc<ForwardParser<'a, Expr>>) -> RcParser<'a, Expr> {
+fn divide(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
     math('/', expr).map(|(lhs, rhs)| Expr::Divide(Box::new(lhs), Box::new(rhs)))
 }
 
@@ -83,7 +81,7 @@ pub fn expr<'a>() -> RcParser<'a, Expr> {
     let symbol = string_symbol(); //Make quoted
     let quoted_string = string_ident()
         .between(pchar('\"'), pchar('\"'))
-        .map(|s| Expr::Str(s));
+        .map(Expr::Str);
     let bool_ = bool();
 
     let forward_ref: ForwardParser<'a, Expr> = forward();
@@ -118,7 +116,7 @@ fn assign<'a>() -> RcParser<'a, Expr> {
     let name = ident.between(let_, equal);
 
     name.then(expr())
-        .map(|(name, value)| Expr::Ident(name.clone(), Box::new(value)))
+        .map(|(name, value)| Expr::Ident(name, Box::new(value)))
 }
 
 fn returns<'a>() -> RcParser<'a, Expr> {

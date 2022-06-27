@@ -5,7 +5,7 @@ type ParseResult<'a, Output> = Result<(Output, &'static str), ()>;
 pub trait Parser<'a> {
     type Output;
     fn parse(&self, input: &'static str) -> ParseResult<Self::Output>;
-    fn as_rc(self) -> RcParser<'a, Self::Output>;
+    fn to_rc(self) -> RcParser<'a, Self::Output>;
 
     fn map<F: 'a, Out: 'a>(&self, f: F) -> RcParser<'a, Out>
     where
@@ -14,9 +14,9 @@ pub trait Parser<'a> {
     {
         MapParser {
             f,
-            parser: self.clone().as_rc(),
+            parser: self.clone().to_rc(),
         }
-        .as_rc()
+        .to_rc()
     }
 
     fn optional(&self) -> RcParser<'a, Option<Self::Output>>
@@ -24,16 +24,16 @@ pub trait Parser<'a> {
         Self: Sized + 'a + Clone,
     {
         OptionParser {
-            parser: self.clone().as_rc(),
+            parser: self.clone().to_rc(),
         }
-        .as_rc()
+        .to_rc()
     }
 
     fn or(&self, other: Self) -> RcParser<'a, Self::Output>
     where
         Self: Sized + 'a + Clone,
     {
-        let parsers = vec![self.clone().as_rc(), other.as_rc()];
+        let parsers = vec![self.clone().to_rc(), other.to_rc()];
         choice(parsers)
     }
 
@@ -42,10 +42,10 @@ pub trait Parser<'a> {
         Self: Sized + 'a + Clone,
     {
         AndThenParser {
-            parser_a: self.clone().as_rc(),
-            parser_b: other.as_rc(),
+            parser_a: self.clone().to_rc(),
+            parser_b: other.to_rc(),
         }
-        .as_rc()
+        .to_rc()
     }
 
     fn many(&self) -> RcParser<'a, Vec<Self::Output>>
@@ -53,9 +53,9 @@ pub trait Parser<'a> {
         Self: Sized + 'a + Clone,
     {
         ManyParser {
-            parser: self.clone().as_rc(),
+            parser: self.clone().to_rc(),
         }
-        .as_rc()
+        .to_rc()
     }
 
     fn many1(&self) -> RcParser<'a, Vec<Self::Output>>
@@ -63,9 +63,9 @@ pub trait Parser<'a> {
         Self: Sized + 'a + Clone,
     {
         Many1Parser {
-            parser: self.clone().as_rc(),
+            parser: self.clone().to_rc(),
         }
-        .as_rc()
+        .to_rc()
     }
 
     fn left<U: 'a>(&self, other: RcParser<'a, U>) -> RcParser<'a, Self::Output>
@@ -120,7 +120,7 @@ impl<'a, R> Parser<'a> for RcParser<'a, R> {
         parser.parse(input)
     }
 
-    fn as_rc(self) -> RcParser<'a, R> {
+    fn to_rc(self) -> RcParser<'a, R> {
         self
     }
 }
@@ -132,7 +132,7 @@ struct CharParser {
 impl<'a> Parser<'a> for CharParser {
     type Output = char;
     fn parse(&self, input: &'static str) -> ParseResult<char> {
-        if input.len() < 1 {
+        if input.is_empty() {
             Result::Err(())
         } else {
             let head = input.chars().next().unwrap();
@@ -144,7 +144,7 @@ impl<'a> Parser<'a> for CharParser {
         }
     }
 
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -162,7 +162,7 @@ impl<'a> Parser<'a> for StringParser {
             Result::Err(())
         }
     }
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -176,7 +176,7 @@ pub fn and_then<'a, Output1: 'a, Output2: 'a>(
     parser_a: RcParser<'a, Output1>,
     parser_b: RcParser<'a, Output2>,
 ) -> RcParser<'a, (Output1, Output2)> {
-    AndThenParser { parser_a, parser_b }.as_rc()
+    AndThenParser { parser_a, parser_b }.to_rc()
 }
 
 impl<'a, Output1: 'a, Output2: 'a> Parser<'a> for AndThenParser<'a, Output1, Output2> {
@@ -198,7 +198,7 @@ impl<'a, Output1: 'a, Output2: 'a> Parser<'a> for AndThenParser<'a, Output1, Out
         }
     }
 
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -220,7 +220,7 @@ impl<'a, Output: 'a> Parser<'a> for ChoiceParser<'a, Output> {
         Err(())
     }
 
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -249,7 +249,7 @@ where
         }
     }
 
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -268,7 +268,7 @@ impl<'a, Output: 'a> Parser<'a> for OptionParser<'a, Output> {
         }
     }
 
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -292,7 +292,7 @@ impl<'a, Output: 'a> Parser<'a> for ManyParser<'a, Output> {
         Result::Ok((values, outerremaining))
     }
 
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -316,7 +316,7 @@ impl<'a, Output: 'a> Parser<'a> for Many1Parser<'a, Output> {
         }
     }
 
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -338,7 +338,7 @@ impl<'a, Output: 'a> Parser<'a> for ForwardParser<'a, Output> {
         }
     }
 
-    fn as_rc(self) -> RcParser<'a, Self::Output> {
+    fn to_rc(self) -> RcParser<'a, Self::Output> {
         Rc::new(self)
     }
 }
@@ -348,15 +348,15 @@ pub fn forward<'a, Output>() -> ForwardParser<'a, Output> {
 }
 
 pub fn pchar<'a>(c: char) -> RcParser<'a, char> {
-    CharParser { c }.as_rc()
+    CharParser { c }.to_rc()
 }
 
 pub fn pstring<'a>(string: &'static str) -> RcParser<'a, &'static str> {
-    StringParser { string }.as_rc()
+    StringParser { string }.to_rc()
 }
 
 pub fn choice<'a, Output: 'a>(parsers: Vec<RcParser<'a, Output>>) -> RcParser<'a, Output> {
-    ChoiceParser { parsers }.as_rc()
+    ChoiceParser { parsers }.to_rc()
 }
 
 pub fn any_of<'a>(chars: &[char]) -> RcParser<'a, char> {

@@ -4,7 +4,6 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::collections::HashMap;
 
 use parser_combinator::*;
-use virtual_machine::*;
 
 fn parse_success(c: &mut Criterion) {
     let any_number = any_of(&['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
@@ -22,7 +21,7 @@ fn parse_success(c: &mut Criterion) {
     c.bench_function("Parse Success", |b| {
         b.iter(|| {
             for _ in 0..100 {
-                black_box(to_number.parse("-123456789"));
+                let _ = black_box(to_number.parse("-123456789"));
             }
         })
     });
@@ -44,7 +43,7 @@ fn parse_fail(c: &mut Criterion) {
     c.bench_function("Parse Fail", |b| {
         b.iter(|| {
             for _ in 0..100 {
-                black_box(to_number.parse("-12345678B"));
+                let _ = black_box(to_number.parse("-12345678B"));
             }
         })
     });

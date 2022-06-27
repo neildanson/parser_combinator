@@ -25,7 +25,7 @@ fn main() {
     let func = Function::new(vec![], il);
     let program = Program::new(HashMap::new());
 
-    let result = program.eval(&func, &vec![]);
+    let result = program.eval(&func, &[]);
 
     println!("{:?}", result);
 }
