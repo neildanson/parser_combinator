@@ -10,6 +10,7 @@ fn main() {
 
     let program_source = "function main {
         let     hello = 5
+        if (true) 1
         let a = (hello * hello)
         let b = (a - 20)
         return   b

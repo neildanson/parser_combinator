@@ -46,6 +46,9 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             let mut exprs = emit(rhs);
             instructions.append(&mut exprs);
             instructions.push(Instruction::Div);
+        }, 
+        Expr::If(_cond, _body) => {
+            panic!("Failed");
         }
     }
     instructions

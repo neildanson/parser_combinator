@@ -76,6 +76,15 @@ fn divide(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
     math('/', expr).map(|(lhs, rhs)| Expr::Divide(Box::new(lhs), Box::new(rhs)))
 }
 
+
+fn condition<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr> {
+    let if_ = pstring("if").ws();
+    let cond = expr.clone().between(pchar('(').ws(), pchar(')')).ws();
+    let body = expr.clone();
+
+    if_.right(cond).then(body).map(|(cond, body) | Expr::If(Box::new(cond), vec![body]))
+}
+
 pub fn expr<'a>() -> RcParser<'a, Expr> {
     let int_ = int();
     let symbol = string_symbol(); //Make quoted
@@ -90,6 +99,7 @@ pub fn expr<'a>() -> RcParser<'a, Expr> {
     let subtract = subtract(forward.clone());
     let multiply = multiply(forward.clone());
     let divide = divide(forward.clone());
+    let if_ = condition(forward.clone());
 
     let parsers = vec![
         int_,
@@ -100,6 +110,7 @@ pub fn expr<'a>() -> RcParser<'a, Expr> {
         subtract,
         multiply,
         divide,
+        if_
     ];
     let expr = choice(parsers).ws();
     unsafe {
@@ -125,6 +136,7 @@ fn returns<'a>() -> RcParser<'a, Expr> {
         .right(expr())
         .map(|value| Expr::Return(Box::new(value)))
 }
+
 
 pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
     let assign = assign();
