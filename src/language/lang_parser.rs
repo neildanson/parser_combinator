@@ -1,4 +1,4 @@
-use crate::ast::Expr;
+use crate::ast::*;
 use crate::parser_combinator::parser::*;
 use std::rc::Rc;
 
@@ -131,4 +131,10 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
     let return_ = returns();
 
     choice(vec![assign, return_]).ws().many()
+}
+
+pub fn function<'a>() -> RcParser<'a, Function> {
+    let name = pstring("function").ws1().right(string_ident()).ws().left(pchar('{')).ws();
+    let func = name.then(body()).ws().left(pchar('}'));
+    func.map(|(name, body)| { Function { name, body }})
 }

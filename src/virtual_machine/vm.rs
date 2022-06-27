@@ -70,6 +70,7 @@ impl StackFrame {
     }
 }
 
+#[derive(Debug)]
 pub struct Function {
     parameters: Vec<Types>,
     instructions: Vec<Instruction>,

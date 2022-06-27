@@ -1,7 +1,7 @@
 use crate::ast::Expr;
 use crate::virtual_machine::*;
 
-pub fn emit(expr: &Expr) -> Vec<Instruction> {
+fn emit(expr: &Expr) -> Vec<Instruction> {
     let mut instructions = Vec::new();
     match expr {
         Expr::Int(i) => instructions.push(Instruction::Push(Values::Int(*i))),
@@ -51,13 +51,18 @@ pub fn emit(expr: &Expr) -> Vec<Instruction> {
     instructions
 }
 
-pub fn emit_body(exprs: &[Expr]) -> Vec<Instruction> {
+fn emit_body(exprs: &[Expr]) -> Vec<Instruction> {
     let mut instructions = Vec::new();
     for e in exprs {
         let mut exprs = emit(e);
         instructions.append(&mut exprs);
     }
     instructions
+}
+
+pub fn emit_function(function: &crate::ast::Function) -> Function {
+    let body = emit_body(&function.body);
+    Function::new(Vec::new(), body)
 }
 
 #[cfg(test)]

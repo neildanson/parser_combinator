@@ -12,3 +12,9 @@ pub enum Expr {
     Multiply(Box<Expr>, Box<Expr>),
     Divide(Box<Expr>, Box<Expr>),
 }
+
+
+pub struct Function {
+    pub name : String, 
+    pub body : Vec<Expr>
+}
