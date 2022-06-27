@@ -156,8 +156,8 @@ struct StringParser {
 impl<'a> Parser<'a> for StringParser {
     type Output = &'static str;
     fn parse(&self, input: &'static str) -> ParseResult<&'static str> {
-        if input.starts_with(self.string) {
-            Result::Ok((self.string, &input[self.string.len()..]))
+        if let Some(value) = input.strip_prefix(self.string) {
+            Result::Ok((self.string, &value))
         } else {
             Result::Err(())
         }
