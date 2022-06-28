@@ -50,11 +50,11 @@ fn bool<'a>() -> RcParser<'a, Expr> {
 fn math(symbol: char, expr: RcParser<Expr>) -> RcParser<(Expr, Expr)> {
     let lparen = pchar('(').ws();
     let rparen = pchar(')').ws();
-    let plus = pchar(symbol).ws();
+    let operator = pchar(symbol).ws();
 
     lparen
         .right(expr.clone())
-        .left(plus)
+        .left(operator)
         .then(expr.clone())
         .left(rparen)
 }
@@ -75,8 +75,20 @@ fn divide(expr: RcParser<Expr>) -> RcParser<Expr> {
     math('/', expr).map(|(lhs, rhs)| Expr::Divide(Box::new(lhs), Box::new(rhs)))
 }
 
+fn comparison<'a>(symbol: &'static str, expr: RcParser<'a, Expr>) -> RcParser<'a, (Expr, Expr)> {
+    let comparison = pstring(symbol).ws();
+
+    expr
+        .left(comparison)
+        .then(expr.clone())
+}
+
+fn equals<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
+    comparison("==", expr).map(|(lhs,rhs)| Expr::Equals(Box::new(lhs), Box::new(rhs)))
+}
+
 fn condition<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcParser<'a, Expr> {
-    let if_ = pstring("if").ws();
+    let if_ = pstring("if").ws1();
     let cond = expr.clone();
 
     if_.right(cond)
@@ -104,7 +116,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         let multiply = multiply(forward.clone());
         let divide = divide(forward.clone());
         let if_ = condition(forward.clone(), body.clone());
-
+        let equals = equals(forward.clone());
         let return_ = pstring("return")
             .ws1()
             .right(forward.clone())
@@ -121,6 +133,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             subtract,
             multiply,
             divide,
+            //equals,
         ];
         let expr = choice(parsers).ws();
 

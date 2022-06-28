@@ -9,13 +9,14 @@ fn main() {
     let function = lang_parser::function();
 
     let program_source = "function main () {
-        return 
-            if false {
+        let returnValue =  
+            if true {
                 let foo = 50
                 foo
             } else {
                 20
             }
+        return returnValue
     }";
 
     let expr = function.parse(program_source);

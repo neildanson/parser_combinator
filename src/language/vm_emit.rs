@@ -73,6 +73,11 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             instructions.push(Instruction::JumpUnconditional(else_start + else_.len()));
             append(&mut instructions, &else_);
         }
+        Expr::Equals(lhs, rhs) => {
+            println!("Made it here");
+        },
+        Expr::LessThan(lhs,rhs) => {},
+        Expr::GreaterThan(lhs,rhs) => {}
     }
     instructions
 }

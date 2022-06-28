@@ -12,6 +12,9 @@ pub enum Expr {
     Multiply(Box<Expr>, Box<Expr>),
     Divide(Box<Expr>, Box<Expr>),
     If(Box<Expr>, Vec<Expr>, Vec<Expr>),
+    Equals(Box<Expr>, Box<Expr>),
+    LessThan(Box<Expr>, Box<Expr>),
+    GreaterThan(Box<Expr>, Box<Expr>),
 }
 
 pub struct Function {
