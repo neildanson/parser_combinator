@@ -9,8 +9,9 @@ fn main() {
     let function = lang_parser::function();
 
     let program_source = "function main () {
+        let someValue = true
         let returnValue =  
-            if true {
+            if (someValue == true) {
                 let foo = 50
                 foo
             } else {

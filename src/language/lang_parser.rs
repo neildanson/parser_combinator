@@ -77,10 +77,14 @@ fn divide(expr: RcParser<Expr>) -> RcParser<Expr> {
 
 fn comparison<'a>(symbol: &'static str, expr: RcParser<'a, Expr>) -> RcParser<'a, (Expr, Expr)> {
     let comparison = pstring(symbol).ws();
+    let lparen = pchar('(').ws();
+    let rparen = pchar(')').ws();
 
-    expr
+    lparen
+        .right(expr.clone())
         .left(comparison)
         .then(expr.clone())
+        .left(rparen)
 }
 
 fn equals<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
@@ -123,6 +127,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             .map(|value| Expr::Return(Box::new(value)));
 
         let parsers = vec![
+            equals,
             if_,
             int_,
             bool_,
@@ -133,7 +138,6 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             subtract,
             multiply,
             divide,
-            //equals,
         ];
         let expr = choice(parsers).ws();
 
