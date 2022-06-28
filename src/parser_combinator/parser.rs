@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-type ParseResult<'a, Output> = Result<(Output, &'static str), ()>;
+type ParseResult<'a, Output> = Result<(Output, &'static str), String>;
 
 pub trait Parser<'a> {
     type Output;
@@ -133,13 +133,16 @@ impl<'a> Parser<'a> for CharParser {
     type Output = char;
     fn parse(&self, input: &'static str) -> ParseResult<char> {
         if input.is_empty() {
-            Result::Err(())
+            Result::Err(format!("Empty String - expected {}", self.c))
         } else {
             let head = input.chars().next().unwrap();
             if head == self.c {
                 Result::Ok((self.c, &input[1..]))
             } else {
-                Result::Err(())
+                Result::Err(format!(
+                    "Expected {}, got {}. Remaining {}",
+                    self.c, head, input
+                ))
             }
         }
     }
@@ -159,7 +162,7 @@ impl<'a> Parser<'a> for StringParser {
         if let Some(value) = input.strip_prefix(self.string) {
             Result::Ok((self.string, &value))
         } else {
-            Result::Err(())
+            Result::Err(format!("Expected {}", self.string))
         }
     }
     fn to_rc(self) -> RcParser<'a, Self::Output> {
@@ -191,10 +194,10 @@ impl<'a, Output1: 'a, Output2: 'a> Parser<'a> for AndThenParser<'a, Output1, Out
                         let x = (success1, success2);
                         Ok((x, remaining))
                     }
-                    Err(_) => Err(()),
+                    Err(error) => Err(format!("Then 2nd : {}", error)),
                 }
             }
-            Err(_) => Err(()),
+            Err(error) => Err(format!("Then 1st : {}", error)),
         }
     }
 
@@ -217,7 +220,7 @@ impl<'a, Output: 'a> Parser<'a> for ChoiceParser<'a, Output> {
                 Err(_) => continue,
             }
         }
-        Err(())
+        Err("Expected one of the parsers to succeed".to_string())
     }
 
     fn to_rc(self) -> RcParser<'a, Self::Output> {
@@ -245,7 +248,7 @@ where
                 let mapped = (self.f)(success);
                 Ok((mapped, remaining))
             }
-            Err(_) => Err(()),
+            Err(error) => Err(format!("MapParser : {}", error)),
         }
     }
 
@@ -312,7 +315,7 @@ impl<'a, Output: 'a> Parser<'a> for Many1Parser<'a, Output> {
                 result.insert(0, success);
                 Ok((result, remain))
             }
-            Err(_) => Err(()),
+            Err(err) => Err(err),
         }
     }
 
@@ -333,7 +336,7 @@ impl<'a, Output: 'a> Parser<'a> for ForwardParser<'a, Output> {
             Some(parser) => parser.parse(input),
             None => {
                 println!("Failed because empty parser");
-                Result::Err(())
+                Result::Err("Forward Parser not implemented".to_string())
             }
         }
     }
@@ -343,8 +346,15 @@ impl<'a, Output: 'a> Parser<'a> for ForwardParser<'a, Output> {
     }
 }
 
-pub fn forward<'a, Output>() -> ForwardParser<'a, Output> {
-    ForwardParser { parser: None }
+pub fn forward<'a, Output>() -> Rc<ForwardParser<'a, Output>> {
+    Rc::new(ForwardParser { parser: None })
+}
+
+pub fn set_implementation<'a, Output>(forward : &mut Rc<ForwardParser<'a, Output>>, implementation : RcParser<'a, Output>) {
+    unsafe {
+        let forward_ref = Rc::get_mut_unchecked(forward);
+        forward_ref.parser = Some(implementation);
+    }
 }
 
 pub fn pchar<'a>(c: char) -> RcParser<'a, char> {
@@ -488,5 +498,16 @@ mod tests {
         let result = stringified.parse("SomeValue A");
 
         assert_eq!(result, Result::Ok(("SomeValue".to_string(), " A")));
+    }
+
+    #[test]
+    fn between_test() {
+        let foo = pstring("foo");
+        let lparen = pchar('(');
+        let rparen = pchar(')');
+
+        let result = foo.between(lparen, rparen).parse("(foo)");
+
+        assert_eq!(result, Result::Ok(("foo", "")));
     }
 }

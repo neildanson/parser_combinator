@@ -8,32 +8,36 @@ fn main() {
 
     let function = lang_parser::function();
 
-    let program_source = "function main {
-        let     hello = 5
-        if (true) 1
-        let a = (hello * hello)
-        let b = (a - 20)
-        return   b
+    let program_source = "function main () {
+        return 
+            if false {
+                let foo = 50
+                foo
+            } else {
+                20
+            }
     }";
 
     let expr = function.parse(program_source);
-    let (result, remaining) = expr.unwrap();
 
+    match expr {
+        Result::Ok((result, remaining)) => {
+            let il = vm_emit::emit_function(&result);
 
+            println!("######################################################");
+            println!("{:?} -> {:?}", result.body, remaining);
+            println!("######################################################");
+            println!("{:?}", il);
+            println!("######################################################");
 
-    let il = vm_emit::emit_function(&result);
+            let program = Program::new(HashMap::new());
 
+            let result = program.eval(&il, &[]);
 
+            println!("{:?}", result);
+        }, 
+        Result::Err(error) => println!("{}", error)
+    }
 
-    println!("######################################################");
-    println!("{:?} -> {:?}", result.body, remaining);
-    println!("######################################################");
-    println!("{:?}", il);
-    println!("######################################################");
-
-    let program = Program::new(HashMap::new());
-
-    let result = program.eval(&il, &[]);
-
-    println!("{:?}", result);
+    
 }

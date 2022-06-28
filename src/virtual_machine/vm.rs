@@ -51,6 +51,7 @@ pub enum Instruction {
     //Control Flow
     JumpEqual(usize),
     JumpNotEqual(usize),
+    JumpUnconditional(usize),
     Call(&'static str),
 }
 
@@ -300,9 +301,13 @@ impl Program {
                     let left = stack_frame.stack.pop().unwrap();
                     if left != right {
                         ip = *location;
+                        //let next = &function.instructions[ip];
                     } else {
                         ip += 1;
                     }
+                },
+                Instruction::JumpUnconditional(location) => {
+                    ip = *location;
                 }
             }
         }

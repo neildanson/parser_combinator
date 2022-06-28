@@ -1,6 +1,5 @@
 use crate::ast::*;
 use crate::parser_combinator::parser::*;
-use std::rc::Rc;
 
 fn int<'a>() -> RcParser<'a, Expr> {
     let any_number = any_of(&['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
@@ -48,7 +47,7 @@ fn bool<'a>() -> RcParser<'a, Expr> {
     true_.or(false_).map(|s| Expr::Bool(s == "true"))
 }
 
-fn math(symbol: char, expr: Rc<ForwardParser<Expr>>) -> RcParser<(Expr, Expr)> {
+fn math(symbol: char, expr: RcParser<Expr>) -> RcParser<(Expr, Expr)> {
     let lparen = pchar('(').ws();
     let rparen = pchar(')').ws();
     let plus = pchar(symbol).ws();
@@ -60,93 +59,102 @@ fn math(symbol: char, expr: Rc<ForwardParser<Expr>>) -> RcParser<(Expr, Expr)> {
         .left(rparen)
 }
 
-fn add(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
+fn add(expr: RcParser<Expr>) -> RcParser<Expr> {
     math('+', expr).map(|(lhs, rhs)| Expr::Add(Box::new(lhs), Box::new(rhs)))
 }
 
-fn subtract(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
+fn subtract(expr: RcParser<Expr>) -> RcParser<Expr> {
     math('-', expr).map(|(lhs, rhs)| Expr::Subtract(Box::new(lhs), Box::new(rhs)))
 }
 
-fn multiply(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
+fn multiply(expr: RcParser<Expr>) -> RcParser<Expr> {
     math('*', expr).map(|(lhs, rhs)| Expr::Multiply(Box::new(lhs), Box::new(rhs)))
 }
 
-fn divide(expr: Rc<ForwardParser<Expr>>) -> RcParser<Expr> {
+fn divide(expr: RcParser<Expr>) -> RcParser<Expr> {
     math('/', expr).map(|(lhs, rhs)| Expr::Divide(Box::new(lhs), Box::new(rhs)))
 }
 
-
-fn condition<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr> {
+fn condition<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcParser<'a, Expr> {
     let if_ = pstring("if").ws();
-    let cond = expr.clone().between(pchar('(').ws(), pchar(')')).ws();
-    let body = expr.clone();
+    let cond = expr.clone();
 
-    if_.right(cond).then(body).map(|(cond, body) | Expr::If(Box::new(cond), vec![body]))
+    if_.right(cond)
+        .then(body.clone())
+        .left(pstring("else").ws())
+        .then(body.clone())
+        .map(|((cond, true_body), false_body)| Expr::If(Box::new(cond), true_body, false_body))
 }
-
-pub fn expr<'a>() -> RcParser<'a, Expr> {
-    let int_ = int();
-    let symbol = string_symbol(); //Make quoted
-    let quoted_string = string_ident()
-        .between(pchar('\"'), pchar('\"'))
-        .map(Expr::Str);
-    let bool_ = bool();
-
-    let forward_ref: ForwardParser<'a, Expr> = forward();
-    let mut forward = Rc::new(forward_ref);
-    let add = add(forward.clone());
-    let subtract = subtract(forward.clone());
-    let multiply = multiply(forward.clone());
-    let divide = divide(forward.clone());
-    let if_ = condition(forward.clone());
-
-    let parsers = vec![
-        int_,
-        bool_,
-        symbol,
-        quoted_string,
-        add,
-        subtract,
-        multiply,
-        divide,
-        if_
-    ];
-    let expr = choice(parsers).ws();
-    unsafe {
-        let forward_ref = Rc::get_mut_unchecked(&mut forward);
-        forward_ref.parser = Some(expr);
-    }
-    forward
-}
-
-fn assign<'a>() -> RcParser<'a, Expr> {
-    let ident = string_ident();
-    let let_ = pstring("let").ws1();
-    let equal = pchar('=').ws();
-    let name = ident.between(let_, equal);
-
-    name.then(expr())
-        .map(|(name, value)| Expr::Ident(name, Box::new(value)))
-}
-
-fn returns<'a>() -> RcParser<'a, Expr> {
-    let return_ = pstring("return").ws1();
-    return_
-        .right(expr())
-        .map(|value| Expr::Return(Box::new(value)))
-}
-
 
 pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
-    let assign = assign();
-    let return_ = returns();
+    let mut body = forward();
 
-    choice(vec![assign, return_]).ws().many()
+    let expr = {
+        let int_ = int();
+        let symbol = string_symbol(); //Make quoted
+        let quoted_string = string_ident()
+            .between(pchar('\"'), pchar('\"'))
+            .map(Expr::Str);
+        let bool_ = bool();
+
+        let mut forward = forward();
+
+        let add = add(forward.clone());
+        let subtract = subtract(forward.clone());
+        let multiply = multiply(forward.clone());
+        let divide = divide(forward.clone());
+        let if_ = condition(forward.clone(), body.clone());
+
+        let return_ = pstring("return")
+            .ws1()
+            .right(forward.clone())
+            .map(|value| Expr::Return(Box::new(value)));
+
+        let parsers = vec![
+            if_,
+            int_,
+            bool_,
+            return_,
+            symbol,
+            quoted_string,
+            add,
+            subtract,
+            multiply,
+            divide,
+        ];
+        let expr = choice(parsers).ws();
+
+        set_implementation(&mut forward, expr);
+        forward
+    };
+
+    let assign = {
+        let ident = string_ident();
+        let let_ = pstring("let").ws1();
+        let equal = pchar('=').ws();
+        let name = ident.between(let_, equal);
+
+        name.then(expr.clone())
+            .map(|(name, value)| Expr::Ident(name, Box::new(value))).ws()
+    };
+
+    let body_content = choice(vec![assign, expr.clone()])
+        .many()
+        .between(pchar('{').ws(), pchar('}'))
+        .ws();
+
+    set_implementation(&mut body, body_content);
+
+    body
 }
 
 pub fn function<'a>() -> RcParser<'a, Function> {
-    let name = pstring("function").ws1().right(string_ident()).ws().left(pchar('{')).ws();
-    let func = name.then(body()).ws().left(pchar('}'));
-    func.map(|(name, body)| { Function { name, body }})
+    let name = pstring("function")
+        .ws1()
+        .right(string_ident())
+        .ws()
+        .left(pstring("()"))
+        .ws(); //TODO params parsing
+    let func = name.then(body());
+    func.map(|(name, body)| Function { name, body })
 }
