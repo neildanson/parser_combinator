@@ -3,6 +3,14 @@ use parser_combinator::language::*;
 use parser_combinator::vm::*;
 use std::collections::HashMap;
 
+fn print_il(il : &[Instruction]) {
+    let mut line = 0;
+    for instruction in il {
+        println!("{} \t: {:?}", line, instruction);
+        line = line + 1;
+    }
+}
+
 fn main() {
     let _args: Vec<String> = std::env::args().collect();
 
@@ -24,17 +32,17 @@ fn main() {
 
     match expr {
         Result::Ok((result, remaining)) => {
-            let il = vm_emit::emit_function(&result);
+            let function = vm_emit::emit_function(&result);
 
             println!("######################################################");
             println!("{:?} -> {:?}", result.body, remaining);
             println!("######################################################");
-            println!("{:?}", il);
+            print_il(&function.instructions);
             println!("######################################################");
 
             let program = Program::new(HashMap::new());
 
-            let result = program.eval(&il, &[]);
+            let result = program.eval(&function, &[]);
 
             println!("{:?}", result);
         }, 

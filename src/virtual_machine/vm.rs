@@ -28,6 +28,7 @@ pub enum Types {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Instruction {
+    Nop,
     StoreLocal(String),
     LoadLocal(String),
     LoadArg(usize),
@@ -73,8 +74,8 @@ impl StackFrame {
 
 #[derive(Debug)]
 pub struct Function {
-    parameters: Vec<Types>,
-    instructions: Vec<Instruction>,
+    pub parameters: Vec<Types>,
+    pub instructions: Vec<Instruction>,
 }
 
 impl Function {
@@ -178,6 +179,7 @@ impl Program {
         let mut ip = 0;
         while ip < function.instructions.len() {
             match &function.instructions[ip] {
+                Instruction::Nop => {},
                 Instruction::Push(value) => {
                     stack_frame.stack.push(value.clone());
                     ip += 1;
@@ -301,13 +303,17 @@ impl Program {
                     let left = stack_frame.stack.pop().unwrap();
                     if left != right {
                         ip = *location;
-                        //let next = &function.instructions[ip];
+                        let next = &function.instructions[ip];
+                        print!("{:?}", next);
                     } else {
                         ip += 1;
                     }
                 },
                 Instruction::JumpUnconditional(location) => {
-                    ip = *location;
+                    ip = *location ;
+
+                    let next = &function.instructions[ip];
+                    print!("{:?}", next);
                 }
             }
         }

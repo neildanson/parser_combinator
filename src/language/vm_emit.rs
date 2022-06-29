@@ -8,6 +8,7 @@ fn append(instructions: &mut Vec<Instruction>, instructions_to_add: &[Instructio
         let new_instruction = match instruction {
             Instruction::JumpEqual(offset) => Instruction::JumpEqual(base_offset + offset),
             Instruction::JumpNotEqual(offset) => Instruction::JumpNotEqual(base_offset + offset),
+            Instruction::JumpUnconditional(offset) => Instruction::JumpUnconditional(base_offset + offset),
             _ => instruction.clone(),
         };
         instructions.push(new_instruction);
@@ -70,7 +71,8 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             let else_start = cond.len() + body.len() + 3;//Not sure why 3? 1 for push bool, 1 for UnconditionalJump. 1 for ?
             instructions.push(Instruction::JumpNotEqual(else_start));
             append(&mut instructions, &body);
-            instructions.push(Instruction::JumpUnconditional(else_start + else_.len()));
+            instructions.push(Instruction::Nop);
+            instructions.push(Instruction::JumpUnconditional(else_start + else_.len())); 
             append(&mut instructions, &else_);
         }
         Expr::Equals(lhs, rhs) => {
