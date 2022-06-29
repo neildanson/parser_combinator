@@ -91,6 +91,14 @@ fn equals<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
     comparison("==", expr).map(|(lhs,rhs)| Expr::Equals(Box::new(lhs), Box::new(rhs)))
 }
 
+fn lt<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
+    comparison("<", expr).map(|(lhs,rhs)| Expr::LessThan(Box::new(lhs), Box::new(rhs)))
+}
+
+fn gt<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
+    comparison(">", expr).map(|(lhs,rhs)| Expr::GreaterThan(Box::new(lhs), Box::new(rhs)))
+}
+
 fn condition<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcParser<'a, Expr> {
     let if_ = pstring("if").ws1();
     let cond = expr.clone();
@@ -121,6 +129,8 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         let divide = divide(forward.clone());
         let if_ = condition(forward.clone(), body.clone());
         let equals = equals(forward.clone());
+        let lt = lt(forward.clone());
+        let gt = gt(forward.clone());
         let return_ = pstring("return")
             .ws1()
             .right(forward.clone())
@@ -128,6 +138,8 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
 
         let parsers = vec![
             equals,
+            lt,
+            gt,
             if_,
             int_,
             bool_,

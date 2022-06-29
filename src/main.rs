@@ -17,9 +17,9 @@ fn main() {
     let function = lang_parser::function();
 
     let program_source = "function main () {
-        let someValue = true
+        let someValue = 50
         let returnValue =  
-            if (someValue == true) {
+            if (someValue < 70) {
                 let foo = 50
                  (foo + 10)
             } else {

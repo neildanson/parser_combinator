@@ -83,8 +83,24 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
 
             instructions.push(Instruction::Equal);
         },
-        Expr::LessThan(lhs,rhs) => {},
-        Expr::GreaterThan(lhs,rhs) => {}
+        Expr::LessThan(lhs,rhs) => {
+            let lhs = emit(lhs);
+            let rhs = emit(rhs);
+
+            append(&mut instructions, &lhs);
+            append(&mut instructions, &rhs);
+
+            instructions.push(Instruction::Lt);
+        },
+        Expr::GreaterThan(lhs,rhs) => {
+            let lhs = emit(lhs);
+            let rhs = emit(rhs);
+
+            append(&mut instructions, &lhs);
+            append(&mut instructions, &rhs);
+
+            instructions.push(Instruction::Gt);
+        }
     }
     instructions
 }
