@@ -21,7 +21,7 @@ fn main() {
         let returnValue =  
             if (someValue == true) {
                 let foo = 50
-                foo
+                 (foo + 10)
             } else {
                 20
             }
@@ -34,16 +34,13 @@ fn main() {
         Result::Ok((result, remaining)) => {
             let function = vm_emit::emit_function(&result);
 
-            println!("######################################################");
-            println!("{:?} -> {:?}", result.body, remaining);
-            println!("######################################################");
+            println!("# AST   ##############################################");
+            println!("{:#?} -> {:?}", result.body, remaining);
+            println!("# IL    ##############################################");
             print_il(&function.instructions);
-            println!("######################################################");
-
+            println!("# Result #############################################");
             let program = Program::new(HashMap::new());
-
             let result = program.eval(&function, &[]);
-
             println!("{:?}", result);
         }, 
         Result::Err(error) => println!("{}", error)
