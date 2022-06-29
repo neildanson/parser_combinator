@@ -71,7 +71,6 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             let else_start = cond.len() + body.len() + 3;//Not sure why 3? 1 for push bool, 1 for UnconditionalJump. 1 for ?
             instructions.push(Instruction::JumpNotEqual(else_start));
             append(&mut instructions, &body);
-            instructions.push(Instruction::Nop);
             instructions.push(Instruction::JumpUnconditional(else_start + else_.len())); 
             append(&mut instructions, &else_);
         }

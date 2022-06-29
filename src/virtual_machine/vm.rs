@@ -178,6 +178,7 @@ impl Program {
         let mut stack_frame = StackFrame::new();
         let mut ip = 0;
         while ip < function.instructions.len() {
+            //println!("Executing \t - {:?}", function.instructions[ip]);
             match &function.instructions[ip] {
                 Instruction::Nop => {},
                 Instruction::Push(value) => {
@@ -303,17 +304,12 @@ impl Program {
                     let left = stack_frame.stack.pop().unwrap();
                     if left != right {
                         ip = *location;
-                        let next = &function.instructions[ip];
-                        print!("{:?}", next);
                     } else {
                         ip += 1;
                     }
                 },
                 Instruction::JumpUnconditional(location) => {
                     ip = *location ;
-
-                    let next = &function.instructions[ip];
-                    print!("{:?}", next);
                 }
             }
         }
