@@ -17,16 +17,16 @@ fn main() {
     let function = lang_parser::function();
 
     let program_source = "function main () {
-        let counter = 1
+        counter = 1
         
         while (counter < 71) {
-            let counter = (counter + 1)
+            counter = (counter + 1)
         }
 
-        let returnValue =  
+        returnValue =  
             if (counter < 70) {
-                let foo = 50
-                 (foo + 10)
+                foo = 50
+                (foo + 10)
             } else {
                 20
             }

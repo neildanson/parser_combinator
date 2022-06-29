@@ -149,9 +149,8 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         
     let assign = {
         let ident = string_ident();
-        let let_ = pstring("let").ws1();
         let equal = pchar('=').ws();
-        let name = ident.between(let_, equal);
+        let name = ident.left(equal);
 
         name.then(forward.clone())
             .map(|(name, value)| Expr::Ident(name, Box::new(value))).ws()
