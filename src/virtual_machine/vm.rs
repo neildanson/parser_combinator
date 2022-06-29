@@ -178,7 +178,7 @@ impl Program {
         let mut stack_frame = StackFrame::new();
         let mut ip = 0;
         while ip < function.instructions.len() {
-            //println!("Executing \t - {:?}", function.instructions[ip]);
+            //println!("Executing \t - {} {:?}", ip, function.instructions[ip]);
             match &function.instructions[ip] {
                 Instruction::Nop => {},
                 Instruction::Push(value) => {

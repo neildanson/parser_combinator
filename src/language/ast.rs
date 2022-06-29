@@ -15,6 +15,7 @@ pub enum Expr {
     Equals(Box<Expr>, Box<Expr>),
     LessThan(Box<Expr>, Box<Expr>),
     GreaterThan(Box<Expr>, Box<Expr>),
+    While(Box<Expr>, Vec<Expr>),
 }
 
 pub struct Function {

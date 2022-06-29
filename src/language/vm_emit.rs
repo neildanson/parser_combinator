@@ -100,7 +100,18 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             append(&mut instructions, &rhs);
 
             instructions.push(Instruction::Gt);
-        }
+        }, 
+        Expr::While(cond, body) => {
+            let body = emit_body(body);
+            instructions.push(Instruction::Push(Values::Bool(true)));
+            let cond = emit(cond);
+            append(&mut instructions, &cond);
+            instructions.push(Instruction::JumpNotEqual(cond.len() + body.len() + 3));
+            append(&mut instructions, &body);
+            instructions.push(Instruction::JumpUnconditional(0));
+
+
+        },
     }
     instructions
 }

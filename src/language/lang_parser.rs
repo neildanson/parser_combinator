@@ -99,6 +99,15 @@ fn gt<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
     comparison(">", expr).map(|(lhs,rhs)| Expr::GreaterThan(Box::new(lhs), Box::new(rhs)))
 }
 
+fn while_loop<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcParser<'a, Expr> {
+    let while_ = pstring("while").ws1();
+    let cond = expr.clone();
+
+    while_.right(cond)
+        .then(body.clone())
+        .map(|(cond, body)| Expr::While(Box::new(cond), body))
+}
+
 fn condition<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcParser<'a, Expr> {
     let if_ = pstring("if").ws1();
     let cond = expr.clone();
@@ -113,9 +122,9 @@ fn condition<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcP
 pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
     let mut body = forward();
 
-    let expr = {
+    let expr : RcParser<'a, Expr> = {
         let int_ = int();
-        let symbol = string_symbol(); //Make quoted
+        let symbol = string_symbol(); 
         let quoted_string = string_ident()
             .between(pchar('\"'), pchar('\"'))
             .map(Expr::Str);
@@ -128,6 +137,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         let multiply = multiply(forward.clone());
         let divide = divide(forward.clone());
         let if_ = condition(forward.clone(), body.clone());
+        let while_ = while_loop(forward.clone(), body.clone());
         let equals = equals(forward.clone());
         let lt = lt(forward.clone());
         let gt = gt(forward.clone());
@@ -136,11 +146,24 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             .right(forward.clone())
             .map(|value| Expr::Return(Box::new(value)));
 
+        
+    let assign = {
+        let ident = string_ident();
+        let let_ = pstring("let").ws1();
+        let equal = pchar('=').ws();
+        let name = ident.between(let_, equal);
+
+        name.then(forward.clone())
+            .map(|(name, value)| Expr::Ident(name, Box::new(value))).ws()
+    };
+
         let parsers = vec![
             equals,
             lt,
             gt,
+            while_,
             if_,
+            assign,
             int_,
             bool_,
             return_,
@@ -157,18 +180,8 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         forward
     };
 
-    let assign = {
-        let ident = string_ident();
-        let let_ = pstring("let").ws1();
-        let equal = pchar('=').ws();
-        let name = ident.between(let_, equal);
-
-        name.then(expr.clone())
-            .map(|(name, value)| Expr::Ident(name, Box::new(value))).ws()
-    };
-
-    let body_content = choice(vec![assign, expr.clone()])
-        .many()
+    let body_content = expr.clone()
+        .many1()
         .between(pchar('{').ws(), pchar('}'))
         .ws();
 
