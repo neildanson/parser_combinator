@@ -16,7 +16,8 @@ fn main() {
 
     let function = lang_parser::function();
 
-    let program_source = "function main () {
+    let program_source = "
+    function main () {
         counter = 1
         
         while (counter < 100) {
@@ -39,7 +40,7 @@ fn main() {
         }
     }";
 
-    let expr = function.parse(program_source);
+    let expr = function.parse(program_source.trim_start());
 
     match expr {
         Result::Ok((result, remaining)) => {
