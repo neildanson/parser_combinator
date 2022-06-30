@@ -20,6 +20,7 @@ fn main() {
         counter = 1
         
         while (counter < 71) {
+            print(counter)
             counter = (counter + 1)
         }
 

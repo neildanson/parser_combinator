@@ -53,7 +53,7 @@ pub enum Instruction {
     JumpEqual(usize),
     JumpNotEqual(usize),
     JumpUnconditional(usize),
-    Call(&'static str),
+    Call(String),
 }
 
 struct StackFrame {
@@ -266,8 +266,14 @@ impl Program {
                     stack_frame.stack.push(lte(left, right));
                     ip += 1;
                 }
+                Instruction::Call(name) if name == "print" => {
+                    let value_to_print = stack_frame.stack.pop().unwrap();
+                    println!("{:?}", value_to_print);
+                    ip += 1;
+                }
+
                 Instruction::Call(function_name) => {
-                    let function = self.functions.get(function_name).unwrap();
+                    let function = self.functions.get(function_name.as_str()).unwrap();
                     let mut parameters = Vec::new();
                     for _ in &function.parameters {
                         let value = stack_frame.stack.pop().unwrap();
@@ -463,7 +469,7 @@ mod tests {
         let call_instructions = vec![
             Instruction::Push(Values::Int(10)),
             Instruction::Push(Values::Int(2)),
-            Instruction::Call("div"),
+            Instruction::Call("div".to_string()),
             Instruction::Ret,
         ];
         let call_div = Function::new(Vec::new(), call_instructions);

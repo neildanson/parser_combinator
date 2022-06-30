@@ -119,6 +119,14 @@ fn condition<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcP
         .map(|((cond, true_body), false_body)| Expr::If(Box::new(cond), true_body, false_body))
 }
 
+fn function_call<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr> {
+    let function_name = string_ident().ws();
+    //TODO implement sepBy then support multiple parameters
+    let parameters = expr.between(pchar('('), pchar(')'));
+
+    function_name.then(parameters).map(|(name, parameters)| Expr::Call(name, vec![parameters]))
+}
+
 pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
     let mut body = forward();
 
@@ -141,6 +149,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         let equals = equals(forward.clone());
         let lt = lt(forward.clone());
         let gt = gt(forward.clone());
+        let function_call = function_call(forward.clone());
         let return_ = pstring("return")
             .ws1()
             .right(forward.clone())
@@ -166,6 +175,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             int_,
             bool_,
             return_,
+            function_call,
             symbol,
             quoted_string,
             add,

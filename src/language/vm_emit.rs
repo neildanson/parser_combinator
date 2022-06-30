@@ -32,7 +32,11 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             append(&mut instructions, &exprs);
             instructions.push(Instruction::Ret);
         }
-        Expr::Call(s, _e) => println!("{}", s),
+        Expr::Call(function_name, exprs) => {
+            let exprs = emit_body(exprs);
+            append(&mut instructions, &exprs);
+            instructions.push(Instruction::Call(function_name.to_string()));
+        },
         Expr::Add(lhs, rhs) => {
             let exprs = emit(lhs);
             append(&mut instructions, &exprs);
