@@ -75,6 +75,10 @@ fn divide(expr: RcParser<Expr>) -> RcParser<Expr> {
     math('/', expr).map(|(lhs, rhs)| Expr::Divide(Box::new(lhs), Box::new(rhs)))
 }
 
+fn modulus(expr: RcParser<Expr>) -> RcParser<Expr> {
+    math('%', expr).map(|(lhs, rhs)| Expr::Modulus(Box::new(lhs), Box::new(rhs)))
+}
+
 fn comparison<'a>(symbol: &'static str, expr: RcParser<'a, Expr>) -> RcParser<'a, (Expr, Expr)> {
     let comparison = pstring(symbol).ws();
     let lparen = pchar('(').ws();
@@ -144,6 +148,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         let subtract = subtract(forward.clone());
         let multiply = multiply(forward.clone());
         let divide = divide(forward.clone());
+        let modulus = modulus(forward.clone());
         let if_ = condition(forward.clone(), body.clone());
         let while_ = while_loop(forward.clone(), body.clone());
         let equals = equals(forward.clone());
@@ -182,6 +187,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             subtract,
             multiply,
             divide,
+            modulus
         ];
         let expr = choice(parsers).ws();
 

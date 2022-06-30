@@ -38,6 +38,7 @@ pub enum Instruction {
     Sub,
     Mul,
     Div,
+    Mod,
     //Comparison
     Equal,
     NotEqual,
@@ -116,6 +117,13 @@ fn div(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Int(left / right),
         (Values::Float(left), Values::Float(right)) => Values::Float(left / right),
+        _ => panic!("Addition not supported for Values"),
+    }
+}
+
+fn modulus(left: Values, right: Values) -> Values {
+    match (left, right) {
+        (Values::Int(left), Values::Int(right)) => Values::Int(left % right),
         _ => panic!("Addition not supported for Values"),
     }
 }
@@ -223,6 +231,12 @@ impl Program {
                     let right = stack_frame.stack.pop().unwrap();
                     let left = stack_frame.stack.pop().unwrap();
                     stack_frame.stack.push(div(left, right));
+                    ip += 1;
+                }
+                Instruction::Mod => {
+                    let right = stack_frame.stack.pop().unwrap();
+                    let left = stack_frame.stack.pop().unwrap();
+                    stack_frame.stack.push(modulus(left, right));
                     ip += 1;
                 }
                 Instruction::Ret => {

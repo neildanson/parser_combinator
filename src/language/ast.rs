@@ -11,6 +11,7 @@ pub enum Expr {
     Subtract(Box<Expr>, Box<Expr>),
     Multiply(Box<Expr>, Box<Expr>),
     Divide(Box<Expr>, Box<Expr>),
+    Modulus(Box<Expr>, Box<Expr>),
     If(Box<Expr>, Vec<Expr>, Vec<Expr>),
     Equals(Box<Expr>, Box<Expr>),
     LessThan(Box<Expr>, Box<Expr>),

@@ -19,19 +19,20 @@ fn main() {
     let program_source = "function main () {
         counter = 1
         
-        while (counter < 71) {
-            print(counter)
+        while (counter < 15) {
+            result = 
+                if ((counter % 3) == 0) {
+                    \"Fizz\"
+                } else {
+                    if ((counter % 5) == 0) {
+                        \"Buzz\"
+                    } else {
+                        counter
+                    }
+                }
+            print(result)
             counter = (counter + 1)
         }
-
-        returnValue =  
-            if (counter < 70) {
-                foo = 50
-                (foo + 10)
-            } else {
-                20
-            }
-        return returnValue
     }";
 
     let expr = function.parse(program_source);

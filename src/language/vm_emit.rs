@@ -65,6 +65,13 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             append(&mut instructions, &exprs);
             instructions.push(Instruction::Div);
         }
+        Expr::Modulus(lhs, rhs) => {
+            let exprs = emit(lhs);
+            append(&mut instructions, &exprs);
+            let exprs = emit(rhs);
+            append(&mut instructions, &exprs);
+            instructions.push(Instruction::Mod);
+        }
         Expr::If(cond, body, else_) => {
             let body = emit_body(body);
             let else_ = emit_body(else_);
