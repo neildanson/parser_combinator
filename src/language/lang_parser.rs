@@ -103,6 +103,10 @@ fn gt<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
     comparison(">", expr).map(|(lhs,rhs)| Expr::GreaterThan(Box::new(lhs), Box::new(rhs)))
 }
 
+fn and<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
+    comparison("&&", expr).map(|(lhs,rhs)| Expr::And(Box::new(lhs), Box::new(rhs)))
+}
+
 fn while_loop<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcParser<'a, Expr> {
     let while_ = pstring("while").ws1();
     let cond = expr.clone();
@@ -154,6 +158,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         let equals = equals(forward.clone());
         let lt = lt(forward.clone());
         let gt = gt(forward.clone());
+        let and = and(forward.clone());
         let function_call = function_call(forward.clone());
         let return_ = pstring("return")
             .ws1()
@@ -174,6 +179,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             equals,
             lt,
             gt,
+            and,
             while_,
             if_,
             assign,

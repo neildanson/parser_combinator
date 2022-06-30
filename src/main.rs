@@ -19,15 +19,19 @@ fn main() {
     let program_source = "function main () {
         counter = 1
         
-        while (counter < 15) {
+        while (counter < 100) {
             result = 
-                if ((counter % 3) == 0) {
-                    \"Fizz\"
+                if (((counter % 3) == 0) && ((counter % 5) == 0)) {
+                    \"FizzBuzz\"
                 } else {
-                    if ((counter % 5) == 0) {
-                        \"Buzz\"
+                    if ((counter % 3) == 0) {
+                        \"Fizz\"
                     } else {
-                        counter
+                        if ((counter % 3) == 0) {
+                            \"Buzz\"
+                        } else {
+                            counter
+                        }
                     }
                 }
             print(result)

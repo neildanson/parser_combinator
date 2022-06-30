@@ -112,6 +112,15 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
 
             instructions.push(Instruction::Gt);
         }, 
+        Expr::And(lhs, rhs) => {
+            let lhs = emit(lhs);
+            let rhs = emit(rhs);
+
+            append(&mut instructions, &lhs);
+            append(&mut instructions, &rhs);
+
+            instructions.push(Instruction::And);
+        },
         Expr::While(cond, body) => {
             let body = emit_body(body);
             instructions.push(Instruction::Push(Values::Bool(true)));
