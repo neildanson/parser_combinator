@@ -8,7 +8,9 @@ fn append(instructions: &mut Vec<Instruction>, instructions_to_add: &[Instructio
         let new_instruction = match instruction {
             Instruction::JumpEqual(offset) => Instruction::JumpEqual(base_offset + offset),
             Instruction::JumpNotEqual(offset) => Instruction::JumpNotEqual(base_offset + offset),
-            Instruction::JumpUnconditional(offset) => Instruction::JumpUnconditional(base_offset + offset),
+            Instruction::JumpUnconditional(offset) => {
+                Instruction::JumpUnconditional(base_offset + offset)
+            }
             _ => instruction.clone(),
         };
         instructions.push(new_instruction);
@@ -36,7 +38,7 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             let exprs = emit_body(exprs);
             append(&mut instructions, &exprs);
             instructions.push(Instruction::Call(function_name.to_string()));
-        },
+        }
         Expr::Add(lhs, rhs) => {
             let exprs = emit(lhs);
             append(&mut instructions, &exprs);
@@ -77,33 +79,29 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             let else_ = emit_body(else_);
 
             instructions.push(Instruction::Push(Values::Bool(true)));
-            let cond = emit(&cond);
+            let cond = emit(cond);
             append(&mut instructions, &cond);
-            let else_start = cond.len() + body.len() + 3;//Not sure why 3? 1 for push bool, 1 for UnconditionalJump. 1 for ?
+            let else_start = cond.len() + body.len() + 3; //Not sure why 3? 1 for push bool, 1 for UnconditionalJump. 1 for ?
             instructions.push(Instruction::JumpNotEqual(else_start));
             append(&mut instructions, &body);
-            instructions.push(Instruction::JumpUnconditional(else_start + else_.len())); 
+            instructions.push(Instruction::JumpUnconditional(else_start + else_.len()));
             append(&mut instructions, &else_);
         }
         Expr::Equals(lhs, rhs) => {
             let lhs = emit(lhs);
             let rhs = emit(rhs);
-
             append(&mut instructions, &lhs);
             append(&mut instructions, &rhs);
-
             instructions.push(Instruction::Equal);
-        },
-        Expr::LessThan(lhs,rhs) => {
+        }
+        Expr::LessThan(lhs, rhs) => {
             let lhs = emit(lhs);
             let rhs = emit(rhs);
-
             append(&mut instructions, &lhs);
             append(&mut instructions, &rhs);
-
             instructions.push(Instruction::Lt);
-        },
-        Expr::GreaterThan(lhs,rhs) => {
+        }
+        Expr::GreaterThan(lhs, rhs) => {
             let lhs = emit(lhs);
             let rhs = emit(rhs);
 
@@ -111,16 +109,14 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             append(&mut instructions, &rhs);
 
             instructions.push(Instruction::Gt);
-        }, 
+        }
         Expr::And(lhs, rhs) => {
             let lhs = emit(lhs);
             let rhs = emit(rhs);
-
             append(&mut instructions, &lhs);
             append(&mut instructions, &rhs);
-
             instructions.push(Instruction::And);
-        },
+        }
         Expr::While(cond, body) => {
             let body = emit_body(body);
             instructions.push(Instruction::Push(Values::Bool(true)));
@@ -129,9 +125,7 @@ fn emit(expr: &Expr) -> Vec<Instruction> {
             instructions.push(Instruction::JumpNotEqual(cond.len() + body.len() + 3));
             append(&mut instructions, &body);
             instructions.push(Instruction::JumpUnconditional(0));
-
-
-        },
+        }
     }
     instructions
 }

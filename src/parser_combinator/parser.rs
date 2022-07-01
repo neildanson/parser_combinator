@@ -160,7 +160,7 @@ impl<'a> Parser<'a> for StringParser {
     type Output = &'static str;
     fn parse(&self, input: &'static str) -> ParseResult<&'static str> {
         if let Some(value) = input.strip_prefix(self.string) {
-            Result::Ok((self.string, &value))
+            Result::Ok((self.string, value))
         } else {
             Result::Err(format!("Expected {}", self.string))
         }
@@ -350,7 +350,10 @@ pub fn forward<'a, Output>() -> Rc<ForwardParser<'a, Output>> {
     Rc::new(ForwardParser { parser: None })
 }
 
-pub fn set_implementation<'a, Output>(forward : &mut Rc<ForwardParser<'a, Output>>, implementation : RcParser<'a, Output>) {
+pub fn set_implementation<'a, Output>(
+    forward: &mut Rc<ForwardParser<'a, Output>>,
+    implementation: RcParser<'a, Output>,
+) {
     unsafe {
         let forward_ref = Rc::get_mut_unchecked(forward);
         forward_ref.parser = Some(implementation);

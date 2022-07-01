@@ -1,14 +1,12 @@
-use std::time::Instant;
 use parser_combinator::language::lang_parser;
 use parser_combinator::language::*;
 use parser_combinator::vm::*;
 use std::collections::HashMap;
+use std::time::Instant;
 
-fn print_il(il : &[Instruction]) {
-    let mut line = 0;
-    for instruction in il {
+fn print_il(il: &[Instruction]) {
+    for (line, instruction) in il.iter().enumerate() {
         println!("{} \t: {:?}", line, instruction);
-        line = line + 1;
     }
 }
 
@@ -21,7 +19,7 @@ fn main() {
     function main () {
         counter = 1
         
-        while (counter < 100) {
+        while (counter < 1000) {
             result = 
                 if (((counter % 3) == 0) && ((counter % 5) == 0)) {
                     \"FizzBuzz\"
@@ -52,9 +50,15 @@ fn main() {
             let emit_end = Instant::now();
             let emit_time = emit_end - emit_start;
 
-            println!("# AST   (Parsed {:?} ##############################################", parse_time);
+            println!(
+                "# AST   (Parsed {:?} ##############################################",
+                parse_time
+            );
             println!("{:#?} -> {:?}", result.body, remaining);
-            println!("# IL    (Emit   {:?} ##############################################", emit_time);
+            println!(
+                "# IL    (Emit   {:?} ##############################################",
+                emit_time
+            );
             print_il(&function.instructions);
             println!("# Result #############################################");
             let program = Program::new(HashMap::new());
@@ -63,9 +67,7 @@ fn main() {
             let run_end = Instant::now();
             let run_time = run_end - run_start;
             println!("{:?} in {:?}", result, run_time);
-        }, 
-        Result::Err(error) => println!("{}", error)
+        }
+        Result::Err(error) => println!("{}", error),
     }
-
-    
 }

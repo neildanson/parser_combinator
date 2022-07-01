@@ -188,7 +188,7 @@ impl Program {
         while ip < function.instructions.len() {
             //println!("Executing \t - {} {:?}", ip, function.instructions[ip]);
             match &function.instructions[ip] {
-                Instruction::Nop => {},
+                Instruction::Nop => {}
                 Instruction::Push(value) => {
                     stack_frame.stack.push(value.clone());
                     ip += 1;
@@ -327,9 +327,9 @@ impl Program {
                     } else {
                         ip += 1;
                     }
-                },
+                }
                 Instruction::JumpUnconditional(location) => {
-                    ip = *location ;
+                    ip = *location;
                 }
             }
         }

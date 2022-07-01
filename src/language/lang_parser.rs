@@ -91,27 +91,28 @@ fn comparison<'a>(symbol: &'static str, expr: RcParser<'a, Expr>) -> RcParser<'a
         .left(rparen)
 }
 
-fn equals<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
-    comparison("==", expr).map(|(lhs,rhs)| Expr::Equals(Box::new(lhs), Box::new(rhs)))
+fn equals(expr: RcParser<Expr>) -> RcParser<Expr> {
+    comparison("==", expr).map(|(lhs, rhs)| Expr::Equals(Box::new(lhs), Box::new(rhs)))
 }
 
-fn lt<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
-    comparison("<", expr).map(|(lhs,rhs)| Expr::LessThan(Box::new(lhs), Box::new(rhs)))
+fn lt(expr: RcParser<Expr>) -> RcParser<Expr> {
+    comparison("<", expr).map(|(lhs, rhs)| Expr::LessThan(Box::new(lhs), Box::new(rhs)))
 }
 
-fn gt<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
-    comparison(">", expr).map(|(lhs,rhs)| Expr::GreaterThan(Box::new(lhs), Box::new(rhs)))
+fn gt(expr: RcParser<Expr>) -> RcParser<Expr> {
+    comparison(">", expr).map(|(lhs, rhs)| Expr::GreaterThan(Box::new(lhs), Box::new(rhs)))
 }
 
-fn and<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr>  {
-    comparison("&&", expr).map(|(lhs,rhs)| Expr::And(Box::new(lhs), Box::new(rhs)))
+fn and(expr: RcParser<Expr>) -> RcParser<Expr> {
+    comparison("&&", expr).map(|(lhs, rhs)| Expr::And(Box::new(lhs), Box::new(rhs)))
 }
 
 fn while_loop<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcParser<'a, Expr> {
     let while_ = pstring("while").ws1();
     let cond = expr.clone();
 
-    while_.right(cond)
+    while_
+        .right(cond)
         .then(body.clone())
         .map(|(cond, body)| Expr::While(Box::new(cond), body))
 }
@@ -127,20 +128,22 @@ fn condition<'a>(expr: RcParser<'a, Expr>, body: RcParser<'a, Vec<Expr>>) -> RcP
         .map(|((cond, true_body), false_body)| Expr::If(Box::new(cond), true_body, false_body))
 }
 
-fn function_call<'a>(expr: RcParser<'a, Expr>) -> RcParser<'a, Expr> {
+fn function_call(expr: RcParser<Expr>) -> RcParser<Expr> {
     let function_name = string_ident().ws();
     //TODO implement sepBy then support multiple parameters
     let parameters = expr.between(pchar('('), pchar(')'));
 
-    function_name.then(parameters).map(|(name, parameters)| Expr::Call(name, vec![parameters]))
+    function_name
+        .then(parameters)
+        .map(|(name, parameters)| Expr::Call(name, vec![parameters]))
 }
 
 pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
     let mut body = forward();
 
-    let expr : RcParser<'a, Expr> = {
+    let expr: RcParser<'a, Expr> = {
         let int_ = int();
-        let symbol = string_symbol(); 
+        let symbol = string_symbol();
         let quoted_string = string_ident()
             .between(pchar('\"'), pchar('\"'))
             .map(Expr::Str);
@@ -165,15 +168,15 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             .right(forward.clone())
             .map(|value| Expr::Return(Box::new(value)));
 
-        
-    let assign = {
-        let ident = string_ident();
-        let equal = pchar('=').ws();
-        let name = ident.left(equal);
+        let assign = {
+            let ident = string_ident();
+            let equal = pchar('=').ws();
+            let name = ident.left(equal);
 
-        name.then(forward.clone())
-            .map(|(name, value)| Expr::Ident(name, Box::new(value))).ws()
-    };
+            name.then(forward.clone())
+                .map(|(name, value)| Expr::Ident(name, Box::new(value)))
+                .ws()
+        };
 
         let parsers = vec![
             equals,
@@ -193,7 +196,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
             subtract,
             multiply,
             divide,
-            modulus
+            modulus,
         ];
         let expr = choice(parsers).ws();
 
@@ -201,7 +204,8 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
         forward
     };
 
-    let body_content = expr.clone()
+    let body_content = expr
+        .clone()
         .many1()
         .between(pchar('{').ws(), pchar('}'))
         .ws();
