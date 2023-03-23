@@ -1,10 +1,8 @@
 use std::rc::Rc;
 
-type ParseResult<'a, Output> = Result<(Output, &'static str), String>;
-
 pub trait Parser<'a> {
     type Output;
-    fn parse(&self, input: &'static str) -> ParseResult<Self::Output>;
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String>;
     fn to_rc(self) -> RcParser<'a, Self::Output>;
 
     fn map<F: 'a, Out: 'a>(&self, f: F) -> RcParser<'a, Out>
@@ -115,7 +113,7 @@ pub type RcParser<'a, R> = Rc<dyn Parser<'a, Output = R> + 'a>;
 impl<'a, R> Parser<'a> for RcParser<'a, R> {
     type Output = R;
 
-    fn parse(&self, input: &'static str) -> ParseResult<'a, R> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         let parser = self.as_ref();
         parser.parse(input)
     }
@@ -131,13 +129,13 @@ struct CharParser {
 
 impl<'a> Parser<'a> for CharParser {
     type Output = char;
-    fn parse(&self, input: &'static str) -> ParseResult<char> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         if input.is_empty() {
             Result::Err(format!("Empty String - expected {}", self.c))
         } else {
             let head = input.chars().next().unwrap();
             if head == self.c {
-                Result::Ok((self.c, &input[1..]))
+                Result::Ok((head, &input[1..]))
             } else {
                 Result::Err(format!(
                     "Expected {}, got {}. Remaining {}",
@@ -158,7 +156,7 @@ struct StringParser {
 
 impl<'a> Parser<'a> for StringParser {
     type Output = &'static str;
-    fn parse(&self, input: &'static str) -> ParseResult<&'static str> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         if let Some(value) = input.strip_prefix(self.string) {
             Result::Ok((self.string, value))
         } else {
@@ -184,7 +182,7 @@ pub fn and_then<'a, Output1: 'a, Output2: 'a>(
 
 impl<'a, Output1: 'a, Output2: 'a> Parser<'a> for AndThenParser<'a, Output1, Output2> {
     type Output = (Output1, Output2);
-    fn parse(&self, input: &'static str) -> ParseResult<(Output1, Output2)> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         let result1 = self.parser_a.parse(input);
         match result1 {
             Ok((success1, remaining)) => {
@@ -212,7 +210,7 @@ struct ChoiceParser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for ChoiceParser<'a, Output> {
     type Output = Output;
-    fn parse(&self, input: &'static str) -> ParseResult<Output> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         for p in &self.parsers {
             let result = p.parse(input);
             match result {
@@ -241,7 +239,7 @@ where
     F: Fn(Input) -> Output,
 {
     type Output = Output;
-    fn parse(&self, input: &'static str) -> ParseResult<Output> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         let result = self.parser.parse(input);
         match result {
             Ok((success, remaining)) => {
@@ -263,7 +261,7 @@ struct OptionParser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for OptionParser<'a, Output> {
     type Output = Option<Output>;
-    fn parse(&self, input: &'static str) -> ParseResult<Option<Output>> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         let result1 = self.parser.parse(input);
         match result1 {
             Ok((success, remaining)) => Result::Ok((Some(success), remaining)),
@@ -282,7 +280,7 @@ struct ManyParser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for ManyParser<'a, Output> {
     type Output = Vec<Output>;
-    fn parse(&self, input: &'static str) -> ParseResult<Vec<Output>> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         let mut result = self.parser.parse(input);
         let mut values = Vec::new();
         let mut outerremaining = input;
@@ -306,7 +304,7 @@ struct Many1Parser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for Many1Parser<'a, Output> {
     type Output = Vec<Output>;
-    fn parse(&self, input: &'static str) -> ParseResult<Vec<Output>> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         let result = self.parser.parse(input);
         let many_parser = self.parser.clone().many();
         match result {
@@ -330,7 +328,7 @@ pub struct ForwardParser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for ForwardParser<'a, Output> {
     type Output = Output;
-    fn parse(&self, input: &'static str) -> ParseResult<Output> {
+    fn parse(&self, input: &'a str) -> Result<(Self::Output, &'a str), String> {
         let p = self.parser.as_ref();
         match p {
             Some(parser) => parser.parse(input),
