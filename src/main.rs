@@ -8,7 +8,7 @@ use std::time::Instant;
 
 use clap::*;
 
-fn print_il(il: &[Instruction]) {
+fn _print_il(il: &[Instruction]) {
     for (line, instruction) in il.iter().enumerate() {
         println!("{} \t: {:?}", line, instruction);
     }
@@ -39,7 +39,7 @@ fn main() -> Result<(), String> {
             let emit_start = Instant::now();
             let module = vm_emit::emit_module(module);
             let emit_end = Instant::now();
-            let emit_time = emit_end - emit_start;
+            let _emit_time = emit_end - emit_start;
             
             println!(
                 "# AST   (Parsed {:?} ##############################################",
