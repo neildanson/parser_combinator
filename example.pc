@@ -21,5 +21,10 @@ function main () {
     }
 }
 function myprint(data) {
+    myprintagain(data)
+}
+
+function myprintagain(data) {
+    print("again")
     print(data)
 }

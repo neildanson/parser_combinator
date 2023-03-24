@@ -296,7 +296,12 @@ impl Program {
                 }
                 Instruction::Call(name) if name == "print" => {
                     let value_to_print = stack_frame.stack.pop().expect(EMPTY_STACK);
-                    println!("{:?}", value_to_print);
+                    match value_to_print {
+                        Values::Bool(b) =>  println!("{}", b),
+                        Values::String(s) =>  println!("{}", s),
+                        Values::Int(i) =>  println!("{}", i),
+                        Values::Float(f) =>  println!("{}", f),
+                    }
                     ip += 1;
                 }
 
