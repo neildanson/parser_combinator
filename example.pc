@@ -1,7 +1,7 @@
 function main () {
     counter = 1
         
-    while (counter < 1000) {
+    while (counter < 10) {
         result = 
             if (((counter % 3) == 0) && ((counter % 5) == 0)) {
                 "FizzBuzz"

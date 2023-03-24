@@ -23,21 +23,22 @@ struct Args {
    source_file: String,
 }
 
-fn main() {
+fn main() -> Result<(), String> {
     let args = Args::parse();
-    let program_source = std::fs::read_to_string(args.source_file).expect("File not found");
+    let program_source = std::fs::read_to_string(args.source_file).map_err(|e| format!("{e}"))?;
     let program_source = program_source.as_str();
 
-    let function = lang_parser::function();
+    let module = lang_parser::module();
 
     let parse_start = Instant::now();
-    let expr = function.parse(program_source.trim_start());
+    let expr = module.parse(program_source.trim_start());
     let parse_end = Instant::now();
     let parse_time = parse_end - parse_start;
     match expr {
         Result::Ok((result, remaining)) => {
+            let main = result.first().expect("Expected at least 1 function");
             let emit_start = Instant::now();
-            let function = vm_emit::emit_function(&result);
+            let function = vm_emit::emit_function(main);
             let emit_end = Instant::now();
             let emit_time = emit_end - emit_start;
 
@@ -45,7 +46,7 @@ fn main() {
                 "# AST   (Parsed {:?} ##############################################",
                 parse_time
             );
-            println!("{:#?} -> {:?}", result.body, remaining);
+            println!("{:#?} -> {:?}", main.body, remaining);
             println!(
                 "# IL    (Emit   {:?} ##############################################",
                 emit_time
@@ -61,4 +62,5 @@ fn main() {
         }
         Result::Err(error) => println!("{}", error),
     }
+    Ok (())
 }

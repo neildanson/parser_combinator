@@ -225,3 +225,7 @@ pub fn function<'a>() -> RcParser<'a, Function> {
     let func = name.then(body());
     func.map(|(name, body)| Function { name, body })
 }
+
+pub fn module<'a>() -> RcParser<'a, Vec<Function>> {
+    function().many1()
+}
