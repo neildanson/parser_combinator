@@ -1,0 +1,22 @@
+function main () {
+    counter = 1
+        
+    while (counter < 1000) {
+        result = 
+            if (((counter % 3) == 0) && ((counter % 5) == 0)) {
+                "FizzBuzz"
+            } else {
+                if ((counter % 3) == 0) {
+                    "Fizz"
+                } else {
+                    if ((counter % 3) == 0) {
+                        "Buzz"
+                    } else {
+                        counter
+                    }
+                }
+            }
+        print(result)
+        counter = (counter + 1)
+    }
+}

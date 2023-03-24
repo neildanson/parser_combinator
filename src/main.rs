@@ -1,8 +1,12 @@
+// Run as cargo run --  --source-file example.pc
+
 use parser_combinator::language::lang_parser;
 use parser_combinator::language::*;
 use parser_combinator::vm::*;
 use std::collections::HashMap;
 use std::time::Instant;
+
+use clap::*;
 
 fn print_il(il: &[Instruction]) {
     for (line, instruction) in il.iter().enumerate() {
@@ -10,34 +14,21 @@ fn print_il(il: &[Instruction]) {
     }
 }
 
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+   /// Name of the person to greet
+   #[arg(short, long)]
+   source_file: String,
+}
+
 fn main() {
-    let _args: Vec<String> = std::env::args().collect();
+    let args = Args::parse();
+    let program_source = std::fs::read_to_string(args.source_file).expect("File not found");
+    let program_source = program_source.as_str();
 
     let function = lang_parser::function();
-
-    let program_source = "
-    function main () {
-        counter = 1
-        
-        while (counter < 1000) {
-            result = 
-                if (((counter % 3) == 0) && ((counter % 5) == 0)) {
-                    \"FizzBuzz\"
-                } else {
-                    if ((counter % 3) == 0) {
-                        \"Fizz\"
-                    } else {
-                        if ((counter % 3) == 0) {
-                            \"Buzz\"
-                        } else {
-                            counter
-                        }
-                    }
-                }
-            print(result)
-            counter = (counter + 1)
-        }
-    }";
 
     let parse_start = Instant::now();
     let expr = function.parse(program_source.trim_start());
