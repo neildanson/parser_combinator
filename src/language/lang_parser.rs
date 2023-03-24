@@ -226,7 +226,7 @@ pub fn function<'a>() -> RcParser<'a, Function> {
         .ws()
         .then(
             /*string_ident().left(pchar(',').optional().ws())*/
-            string_symbol().many().between(pchar('(').ws(), pchar(')'))
+            string_ident().many().between(pchar('(').ws(), pchar(')'))
         )
         .ws(); 
     let func = name.then(body());

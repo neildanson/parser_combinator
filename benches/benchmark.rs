@@ -56,14 +56,14 @@ fn vm_addition(c: &mut Criterion) {
         instructions.push(Instruction::Add);
     }
 
-    let function = Function::new(0, instructions);
+    let function = Function::new(Vec::new(), instructions);
     let functions = HashMap::from_iter(vec!(("main".to_string(), function)));
     let module = Module::new(functions);
     let program = Program::new(module);
     let main = program.main();
     c.bench_function("VM Addition", |b| {
         b.iter(|| {
-            black_box(program.eval(main, &Vec::new()));
+            black_box(program.eval(main, HashMap::default()));
         })
     });
 }
@@ -81,14 +81,14 @@ fn vm_loop(c: &mut Criterion) {
     instructions.push(Instruction::JumpNotEqual(2)); // <-- Jump if local != 1000
     instructions.push(Instruction::LoadLocal("Local".to_string()));
     instructions.push(Instruction::Ret);
-    let function = Function::new(0, instructions);
+    let function = Function::new(Vec::new(), instructions);
     let functions = HashMap::from_iter(vec!(("main".to_string(), function)));
     let module = Module::new(functions);
     let program = Program::new(module);
     let main = program.main();
     c.bench_function("VM Loop", |b| {
         b.iter(|| {
-            black_box(program.eval(main, &Vec::new()));
+            black_box(program.eval(main, HashMap::new()));
         })
     });
 }

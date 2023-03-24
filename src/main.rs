@@ -55,7 +55,7 @@ fn main() -> Result<(), String> {
             let program = Program::new(module);
 
             let run_start = Instant::now();
-            let result = program.eval(program.main(), &[]);
+            let result = program.eval(program.main(), HashMap::default());
             let run_end = Instant::now();
             let run_time = run_end - run_start;
             println!("{:?} in {:?}", result, run_time);

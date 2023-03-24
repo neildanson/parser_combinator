@@ -1,3 +1,5 @@
+use clap::builder::Str;
+
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum Expr {
     Int(i32),
@@ -23,7 +25,7 @@ pub enum Expr {
 #[derive(Debug, Clone)]
 pub struct Function {
     pub name: String,
-    pub params : Vec<Expr>,
+    pub params : Vec<String>,
     pub body: Vec<Expr>,
 }
 

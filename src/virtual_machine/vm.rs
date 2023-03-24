@@ -34,7 +34,6 @@ pub enum Instruction {
     Nop,
     StoreLocal(String),
     LoadLocal(String),
-    LoadArg(usize),
     Push(Values),
     //Math
     Add,
@@ -67,10 +66,10 @@ struct StackFrame {
 }
 
 impl StackFrame {
-    fn new() -> StackFrame {
+    fn new(params:HashMap<String, Values>) -> StackFrame {
         StackFrame {
             stack: Vec::new(),
-            locals: HashMap::new(),
+            locals: params,
             return_value: None,
         }
     }
@@ -78,14 +77,14 @@ impl StackFrame {
 
 #[derive(Debug)]
 pub struct Function {
-    pub parameter_count : usize,
+    pub parameters: Vec<String>,
     pub instructions: Vec<Instruction>,
 }
 
 impl Function {
-    pub fn new(parameter_count:usize, instructions: Vec<Instruction>) -> Self {
+    pub fn new(parameters:Vec<String>, instructions: Vec<Instruction>) -> Self {
         Function {
-            parameter_count,
+            parameters,
             instructions,
         }
     }
@@ -201,8 +200,9 @@ impl Program {
         self.functions.get("main").expect("Missing `main` entry point")
     }
 
-    pub fn eval(&self, function: &Function, params: &[Values]) -> Option<Values> {
-        let mut stack_frame = StackFrame::new();
+    pub fn eval(&self, function: &Function, params: HashMap<String,Values>) -> Option<Values> {
+        let mut stack_frame = StackFrame::new(params);
+        
         let mut ip = 0;
         while ip < function.instructions.len() {
             //println!("Executing \t - {} {:?}", ip, function.instructions[ip]);
@@ -221,11 +221,6 @@ impl Program {
                 Instruction::LoadLocal(name) => {
                     let variable = stack_frame.locals.get(name).expect(format!("Missing {name}").as_str());
                     stack_frame.stack.push(variable.clone());
-                    ip += 1;
-                }
-                Instruction::LoadArg(arg) => {
-                    let param = &params[*arg];
-                    stack_frame.stack.push(param.clone());
                     ip += 1;
                 }
                 Instruction::Add => {
@@ -307,14 +302,22 @@ impl Program {
 
                 Instruction::Call(function_name) => {
                     let function = self.functions.get(function_name.as_str()).unwrap();
-                    let mut parameters = Vec::new();
-                    for _ in 0.. function.parameter_count {
+                    let mut parameters_values = Vec::new();
+                    for _ in 0.. function.parameters.len() {
                         let value = stack_frame.stack.pop().expect(EMPTY_STACK);
-                        parameters.push(value);
+                        parameters_values.push(value);
                     }
-                    parameters.reverse();
-                    let return_value = self.eval(function, &parameters);
-                    stack_frame.stack.push(return_value.unwrap());
+                    parameters_values.reverse();
+                    let mut parameters = HashMap::new();
+                    for p in 0 .. parameters_values.len() {
+                        parameters.insert(function.parameters[p].clone(), parameters_values[p].clone());
+                    }
+
+                    let return_value = self.eval(function, parameters);
+
+                    if let Some(return_value) = return_value {
+                        stack_frame.stack.push(return_value);
+                    }
                     ip += 1;
                 }
                 Instruction::And => {
@@ -358,6 +361,7 @@ impl Program {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     #[test]
     fn add_2_integers() {
@@ -368,10 +372,10 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(0, instructions);
+        let function = Function::new(Vec::default(), instructions);
         let program = Program::new(Module::default());
 
-        let result = program.eval(&function, &Vec::new());
+        let result = program.eval(&function, HashMap::default());
 
         assert_eq!(result, Some(Values::Int(3)));
     }
@@ -385,10 +389,10 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(0, instructions);
+        let function = Function::new(Vec::default(), instructions);
         let program = Program::new(Module::default());
 
-        let result = program.eval(&function, &Vec::new());
+        let result = program.eval(&function, HashMap::default());
 
         assert_eq!(result, Some(Values::Float(3.)));
     }
@@ -402,10 +406,10 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(0, instructions);
+        let function = Function::new(Vec::default(), instructions);
         let program = Program::new(Module::default());
 
-        let result = program.eval(&function, &Vec::new());
+        let result = program.eval(&function, HashMap::default());
         assert_eq!(result, Some(Values::String("hellohello".to_string())));
     }
 
@@ -418,9 +422,9 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(0, instructions);
+        let function = Function::new(Vec::default(), instructions);
         let program = Program::new(Module::default());
-        let result = program.eval(&function, &Vec::new());
+        let result = program.eval(&function,HashMap::default());
 
         assert_eq!(result, Some(Values::Float(2.)));
     }
@@ -433,10 +437,10 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(0, instructions);
+        let function = Function::new(Vec::default(), instructions);
 
         let program = Program::new(Module::default());
-        let result = program.eval(&function, &Vec::new());
+        let result = program.eval(&function, HashMap::default());
 
         assert_eq!(result, Some(Values::Float(0.5)));
     }
@@ -452,10 +456,10 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(0, instructions);
+        let function = Function::new(Vec::default(), instructions);
         let program = Program::new(Module::default());
 
-        let result = program.eval(&function, &Vec::new());
+        let result = program.eval(&function, HashMap::default());
 
         assert_eq!(result, Some(Values::Float(3.)));
     }
@@ -468,10 +472,10 @@ mod tests {
             Instruction::Add,
         ];
 
-        let function = Function::new(0, instructions);
+        let function = Function::new(Vec::default(), instructions);
         let program = Program::new(Module::default());
 
-        let result = program.eval(&function, &Vec::new());
+        let result = program.eval(&function, HashMap::default());
 
         assert_eq!(result, None);
     }
@@ -480,10 +484,10 @@ mod tests {
     fn immediate_no_return() {
         let instructions = vec![Instruction::Ret];
 
-        let function = Function::new(0, instructions);
+        let function = Function::new(Vec::default(), instructions);
         let program = Program::new(Module::default());
 
-        let result = program.eval(&function, &Vec::new());
+        let result = program.eval(&function, HashMap::default());
 
         assert_eq!(result, None);
     }
@@ -491,13 +495,13 @@ mod tests {
     #[test]
     fn call_method() {
         let div_instructions = vec![
-            Instruction::LoadArg(0),
-            Instruction::LoadArg(1),
+            Instruction::LoadLocal("param1".to_string()),
+            Instruction::LoadLocal("param2".to_string()),
             Instruction::Div,
             Instruction::Ret,
         ];
 
-        let div = Function::new(2, div_instructions);
+        let div = Function::new(vec!("param1".to_string(), "param2".to_string()), div_instructions);
 
         let call_instructions = vec![
             Instruction::Push(Values::Int(10)),
@@ -505,14 +509,14 @@ mod tests {
             Instruction::Call("div".to_string()),
             Instruction::Ret,
         ];
-        let call_div = Function::new(0, call_instructions);
+        let call_div = Function::new(Vec::default(), call_instructions);
 
         let mut functions = HashMap::new();
         functions.insert("div".to_string(), div);
         let module = Module::new(functions);
         let program = Program::new(module);
 
-        let result = program.eval(&call_div, &Vec::new());
+        let result = program.eval(&call_div, HashMap::default());
 
         assert_eq!(result, Some(Values::Int(5)));
     }
