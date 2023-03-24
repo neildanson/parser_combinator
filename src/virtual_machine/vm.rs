@@ -78,14 +78,14 @@ impl StackFrame {
 
 #[derive(Debug)]
 pub struct Function {
-    pub parameters: Vec<Types>,
+    pub parameter_count : usize,
     pub instructions: Vec<Instruction>,
 }
 
 impl Function {
-    pub fn new(parameters: Vec<Types>, instructions: Vec<Instruction>) -> Self {
+    pub fn new(parameter_count:usize, instructions: Vec<Instruction>) -> Self {
         Function {
-            parameters,
+            parameter_count,
             instructions,
         }
     }
@@ -308,7 +308,7 @@ impl Program {
                 Instruction::Call(function_name) => {
                     let function = self.functions.get(function_name.as_str()).unwrap();
                     let mut parameters = Vec::new();
-                    for _ in &function.parameters {
+                    for _ in 0.. function.parameter_count {
                         let value = stack_frame.stack.pop().expect(EMPTY_STACK);
                         parameters.push(value);
                     }
@@ -368,7 +368,7 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(Vec::new(), instructions);
+        let function = Function::new(0, instructions);
         let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
@@ -385,7 +385,7 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(Vec::new(), instructions);
+        let function = Function::new(0, instructions);
         let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
@@ -402,7 +402,7 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(Vec::new(), instructions);
+        let function = Function::new(0, instructions);
         let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
@@ -418,7 +418,7 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(Vec::new(), instructions);
+        let function = Function::new(0, instructions);
         let program = Program::new(Module::default());
         let result = program.eval(&function, &Vec::new());
 
@@ -433,7 +433,7 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(Vec::new(), instructions);
+        let function = Function::new(0, instructions);
 
         let program = Program::new(Module::default());
         let result = program.eval(&function, &Vec::new());
@@ -452,7 +452,7 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let function = Function::new(Vec::new(), instructions);
+        let function = Function::new(0, instructions);
         let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
@@ -468,7 +468,7 @@ mod tests {
             Instruction::Add,
         ];
 
-        let function = Function::new(Vec::new(), instructions);
+        let function = Function::new(0, instructions);
         let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
@@ -480,7 +480,7 @@ mod tests {
     fn immediate_no_return() {
         let instructions = vec![Instruction::Ret];
 
-        let function = Function::new(Vec::new(), instructions);
+        let function = Function::new(0, instructions);
         let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
@@ -497,7 +497,7 @@ mod tests {
             Instruction::Ret,
         ];
 
-        let div = Function::new(vec![Types::Int, Types::Int], div_instructions);
+        let div = Function::new(2, div_instructions);
 
         let call_instructions = vec![
             Instruction::Push(Values::Int(10)),
@@ -505,7 +505,7 @@ mod tests {
             Instruction::Call("div".to_string()),
             Instruction::Ret,
         ];
-        let call_div = Function::new(Vec::new(), call_instructions);
+        let call_div = Function::new(0, call_instructions);
 
         let mut functions = HashMap::new();
         functions.insert("div".to_string(), div);

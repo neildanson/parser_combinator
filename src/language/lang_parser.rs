@@ -225,9 +225,10 @@ pub fn function<'a>() -> RcParser<'a, Function> {
         .right(string_ident())
         .ws()
         .then(
-            string_ident().left(pchar(',').ws().optional()).many().between(pchar('('), pchar(')'), )
+            /*string_ident().left(pchar(',').optional().ws())*/
+            string_symbol().many().between(pchar('(').ws(), pchar(')'))
         )
-        .ws(); //TODO params parsing
+        .ws(); 
     let func = name.then(body());
     func.map(|((name, params), body)| Function { name, params, body })
 }

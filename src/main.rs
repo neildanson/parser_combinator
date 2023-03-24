@@ -40,13 +40,13 @@ fn main() -> Result<(), String> {
             let module = vm_emit::emit_module(module);
             let emit_end = Instant::now();
             let emit_time = emit_end - emit_start;
-            /*
+            
             println!(
                 "# AST   (Parsed {:?} ##############################################",
                 parse_time
             );
             println!("{:#?} -> {:?}", module, remaining);
-            println!(
+            /*println!(
                 "# IL    (Emit   {:?} ##############################################",
                 emit_time
             );

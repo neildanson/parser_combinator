@@ -16,11 +16,10 @@ function main () {
                     }
                 }
             }
-        print(result)
+        myprint(result)
         counter = (counter + 1)
     }
 }
-function myprint(data, otherdata) {
+function myprint(data) {
     print(data)
-    print(otherdata)
 }
