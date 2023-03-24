@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use quote::__private::HasIterator;
+
 use crate::ast::*;
 use crate::parser_combinator::parser::*;
 
@@ -226,6 +230,12 @@ pub fn function<'a>() -> RcParser<'a, Function> {
     func.map(|(name, body)| Function { name, body })
 }
 
-pub fn module<'a>() -> RcParser<'a, Vec<Function>> {
-    function().many1()
+pub fn module<'a>() -> RcParser<'a, HashMap<String, Function>> {
+    function().many1().map(|fns| {
+        let mut fns_map = HashMap::new();
+        for f in fns {
+            fns_map.insert(f.name.clone(), f);
+        }
+        fns_map
+    } )
 }

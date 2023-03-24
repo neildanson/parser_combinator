@@ -20,6 +20,7 @@ pub enum Expr {
     And(Box<Expr>, Box<Expr>),
 }
 
+#[derive(Debug, Clone)]
 pub struct Function {
     pub name: String,
     pub body: Vec<Expr>,

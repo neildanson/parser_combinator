@@ -36,7 +36,7 @@ fn main() -> Result<(), String> {
     let parse_time = parse_end - parse_start;
     match expr {
         Result::Ok((result, remaining)) => {
-            let main = result.first().expect("Expected at least 1 function");
+            let main = result.get("main").expect("Expected at least 1 function");
             let emit_start = Instant::now();
             let function = vm_emit::emit_function(main);
             let emit_end = Instant::now();
