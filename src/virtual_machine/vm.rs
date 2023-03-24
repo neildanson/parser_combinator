@@ -13,8 +13,8 @@ pub enum Values {
     Undefined,*/
 }
 
-const EMPTY_STACK : &'static str = "Stack Empty - please check IL";
-const ADDITION_NOT_SUPPORTED : &'static str = "Addition not supported for Values";
+const EMPTY_STACK : &str = "Stack Empty - please check IL";
+const ADDITION_NOT_SUPPORTED : &str = "Addition not supported for Values";
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Types {
@@ -219,7 +219,7 @@ impl Program {
                     ip += 1;
                 }
                 Instruction::LoadLocal(name) => {
-                    let variable = stack_frame.locals.get(name).expect(format!("Missing {name}").as_str());
+                    let variable = stack_frame.locals.get(name).unwrap_or_else(|| panic!("Missing {name}"));
                     stack_frame.stack.push(variable.clone());
                     ip += 1;
                 }
@@ -309,8 +309,8 @@ impl Program {
                     }
                     parameters_values.reverse();
                     let mut parameters = HashMap::new();
-                    for p in 0 .. parameters_values.len() {
-                        parameters.insert(function.parameters[p].clone(), parameters_values[p].clone());
+                    for (p, pvalue) in parameters_values.iter().enumerate()  {
+                        parameters.insert(function.parameters[p].clone(), pvalue.clone());
                     }
 
                     let return_value = self.eval(function, parameters);
