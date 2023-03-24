@@ -224,10 +224,12 @@ pub fn function<'a>() -> RcParser<'a, Function> {
         .ws1()
         .right(string_ident())
         .ws()
-        .left(pstring("()"))
+        .then(
+            string_ident().left(pchar(',').ws().optional()).many().between(pchar('('), pchar(')'), )
+        )
         .ws(); //TODO params parsing
     let func = name.then(body());
-    func.map(|(name, body)| Function { name, body })
+    func.map(|((name, params), body)| Function { name, params, body })
 }
 
 pub fn module<'a>() -> RcParser<'a, HashMap<String, Function>> {

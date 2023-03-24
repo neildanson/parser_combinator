@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::ast::Expr;
 use crate::virtual_machine::*;
 
@@ -142,6 +144,17 @@ fn emit_body(exprs: &[Expr]) -> Vec<Instruction> {
 pub fn emit_function(function: &crate::ast::Function) -> Function {
     let body = emit_body(&function.body);
     Function::new(Vec::new(), body)
+}
+
+pub fn emit_module(functions: HashMap<String, crate::ast::Function>) -> Module {
+    let values :Vec<_>= functions.into_iter().map(
+        |(name, function)| {
+            let body = emit_body(&function.body);
+            (name, Function::new(Vec::new(), body))
+        }
+    ).collect();
+    Module::new(HashMap::from_iter(values))
+    
 }
 
 #[cfg(test)]

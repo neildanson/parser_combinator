@@ -83,11 +83,22 @@ pub struct Function {
 }
 
 impl Function {
-    pub fn new(parameters: Vec<Types>, instructions: Vec<Instruction>) -> Function {
+    pub fn new(parameters: Vec<Types>, instructions: Vec<Instruction>) -> Self {
         Function {
             parameters,
             instructions,
         }
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Module {
+    pub functions : HashMap<String, Function>
+}
+
+impl Module {
+    pub fn new(functions : HashMap<String, Function>) -> Self {
+        Module { functions }
     }
 }
 
@@ -178,13 +189,18 @@ fn or(left: Values, right: Values) -> Values {
 }
 
 pub struct Program {
-    functions: HashMap<&'static str, Function>,
+    functions: HashMap<String, Function>,
 }
 
 impl Program {
-    pub fn new(functions: HashMap<&'static str, Function>) -> Program {
-        Program { functions }
+    pub fn new(module: Module) -> Program {
+        Program { functions : module.functions }
     }
+
+    pub fn main(&self) -> &Function {
+        self.functions.get("main").expect("Missing `main` entry point")
+    }
+
     pub fn eval(&self, function: &Function, params: &[Values]) -> Option<Values> {
         let mut stack_frame = StackFrame::new();
         let mut ip = 0;
@@ -353,7 +369,7 @@ mod tests {
         ];
 
         let function = Function::new(Vec::new(), instructions);
-        let program = Program::new(HashMap::new());
+        let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
 
@@ -370,7 +386,7 @@ mod tests {
         ];
 
         let function = Function::new(Vec::new(), instructions);
-        let program = Program::new(HashMap::new());
+        let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
 
@@ -387,7 +403,7 @@ mod tests {
         ];
 
         let function = Function::new(Vec::new(), instructions);
-        let program = Program::new(HashMap::new());
+        let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
         assert_eq!(result, Some(Values::String("hellohello".to_string())));
@@ -403,7 +419,7 @@ mod tests {
         ];
 
         let function = Function::new(Vec::new(), instructions);
-        let program = Program::new(HashMap::new());
+        let program = Program::new(Module::default());
         let result = program.eval(&function, &Vec::new());
 
         assert_eq!(result, Some(Values::Float(2.)));
@@ -419,7 +435,7 @@ mod tests {
 
         let function = Function::new(Vec::new(), instructions);
 
-        let program = Program::new(HashMap::new());
+        let program = Program::new(Module::default());
         let result = program.eval(&function, &Vec::new());
 
         assert_eq!(result, Some(Values::Float(0.5)));
@@ -437,7 +453,7 @@ mod tests {
         ];
 
         let function = Function::new(Vec::new(), instructions);
-        let program = Program::new(HashMap::new());
+        let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
 
@@ -453,7 +469,7 @@ mod tests {
         ];
 
         let function = Function::new(Vec::new(), instructions);
-        let program = Program::new(HashMap::new());
+        let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
 
@@ -465,7 +481,7 @@ mod tests {
         let instructions = vec![Instruction::Ret];
 
         let function = Function::new(Vec::new(), instructions);
-        let program = Program::new(HashMap::new());
+        let program = Program::new(Module::default());
 
         let result = program.eval(&function, &Vec::new());
 
@@ -492,8 +508,9 @@ mod tests {
         let call_div = Function::new(Vec::new(), call_instructions);
 
         let mut functions = HashMap::new();
-        functions.insert("div", div);
-        let program = Program::new(functions);
+        functions.insert("div".to_string(), div);
+        let module = Module::new(functions);
+        let program = Program::new(module);
 
         let result = program.eval(&call_div, &Vec::new());
 

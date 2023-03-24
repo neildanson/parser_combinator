@@ -23,5 +23,11 @@ pub enum Expr {
 #[derive(Debug, Clone)]
 pub struct Function {
     pub name: String,
+    pub params : Vec<String>,
     pub body: Vec<Expr>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Module {
+    pub functions: Vec<Function>,
 }

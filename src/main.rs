@@ -35,27 +35,27 @@ fn main() -> Result<(), String> {
     let parse_end = Instant::now();
     let parse_time = parse_end - parse_start;
     match expr {
-        Result::Ok((result, remaining)) => {
-            let main = result.get("main").expect("Expected at least 1 function");
+        Result::Ok((module, remaining)) => {
             let emit_start = Instant::now();
-            let function = vm_emit::emit_function(main);
+            let module = vm_emit::emit_module(module);
             let emit_end = Instant::now();
             let emit_time = emit_end - emit_start;
-
+            /*
             println!(
                 "# AST   (Parsed {:?} ##############################################",
                 parse_time
             );
-            println!("{:#?} -> {:?}", main.body, remaining);
+            println!("{:#?} -> {:?}", module, remaining);
             println!(
                 "# IL    (Emit   {:?} ##############################################",
                 emit_time
             );
             print_il(&function.instructions);
-            println!("# Result #############################################");
-            let program = Program::new(HashMap::new());
+            println!("# Result #############################################");*/
+            let program = Program::new(module);
+
             let run_start = Instant::now();
-            let result = program.eval(&function, &[]);
+            let result = program.eval(program.main(), &[]);
             let run_end = Instant::now();
             let run_time = run_end - run_start;
             println!("{:?} in {:?}", result, run_time);
