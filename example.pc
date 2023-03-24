@@ -20,3 +20,6 @@ function main () {
         counter = (counter + 1)
     }
 }
+function myprint() {
+    print(data)
+}
