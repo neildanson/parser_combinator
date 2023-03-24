@@ -8,7 +8,7 @@ fn int<'a>() -> RcParser<'a, Expr> {
     number_parser
         .map(move |(negate, value): (Option<char>, Vec<char>)| {
             let string: String = value.into_iter().collect();
-            let number = string.parse::<i32>().unwrap();
+            let number = string.parse::<i32>().expect("Incorrectly parsed sequence as an Integer");
             match negate {
                 Some(_) => -number,
                 None => number,
