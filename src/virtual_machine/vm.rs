@@ -13,6 +13,9 @@ pub enum Values {
     Undefined,*/
 }
 
+const EMPTY_STACK : &'static str = "Stack Empty - please check IL";
+const ADDITION_NOT_SUPPORTED : &'static str = "Addition not supported for Values";
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Types {
     Int,
@@ -93,7 +96,7 @@ fn add(left: Values, right: Values) -> Values {
         (Values::Int(left), Values::Int(right)) => Values::Int(left + right),
         (Values::Float(left), Values::Float(right)) => Values::Float(left + right),
         (Values::String(left), Values::String(right)) => Values::String(left + &right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
@@ -101,7 +104,7 @@ fn subtract(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Int(left - right),
         (Values::Float(left), Values::Float(right)) => Values::Float(left - right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
@@ -109,7 +112,7 @@ fn mul(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Int(left * right),
         (Values::Float(left), Values::Float(right)) => Values::Float(left * right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
@@ -117,14 +120,14 @@ fn div(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Int(left / right),
         (Values::Float(left), Values::Float(right)) => Values::Float(left / right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
 fn modulus(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Int(left % right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
@@ -132,7 +135,7 @@ fn lt(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Bool(left < right),
         (Values::Float(left), Values::Float(right)) => Values::Bool(left < right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
@@ -140,7 +143,7 @@ fn lte(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Bool(left <= right),
         (Values::Float(left), Values::Float(right)) => Values::Bool(left <= right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
@@ -148,7 +151,7 @@ fn gt(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Bool(left > right),
         (Values::Float(left), Values::Float(right)) => Values::Bool(left > right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
@@ -156,21 +159,21 @@ fn gte(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Int(left), Values::Int(right)) => Values::Bool(left >= right),
         (Values::Float(left), Values::Float(right)) => Values::Bool(left >= right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
 fn and(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Bool(left), Values::Bool(right)) => Values::Bool(left && right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
 fn or(left: Values, right: Values) -> Values {
     match (left, right) {
         (Values::Bool(left), Values::Bool(right)) => Values::Bool(left || right),
-        _ => panic!("Addition not supported for Values"),
+        _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }
 
@@ -196,7 +199,7 @@ impl Program {
                 Instruction::StoreLocal(name) => {
                     stack_frame
                         .locals
-                        .insert(name.clone(), stack_frame.stack.pop().expect("Stack Empty - please check IL"));
+                        .insert(name.clone(), stack_frame.stack.pop().expect(EMPTY_STACK));
                     ip += 1;
                 }
                 Instruction::LoadLocal(name) => {
@@ -210,32 +213,32 @@ impl Program {
                     ip += 1;
                 }
                 Instruction::Add => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(add(left, right));
                     ip += 1;
                 }
                 Instruction::Sub => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(subtract(left, right));
                     ip += 1;
                 }
                 Instruction::Mul => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(mul(left, right));
                     ip += 1;
                 }
                 Instruction::Div => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(div(left, right));
                     ip += 1;
                 }
                 Instruction::Mod => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(modulus(left, right));
                     ip += 1;
                 }
@@ -245,43 +248,43 @@ impl Program {
                     break;
                 }
                 Instruction::Equal => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(Values::Bool(left == right));
                     ip += 1;
                 }
                 Instruction::NotEqual => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(Values::Bool(left != right));
                     ip += 1;
                 }
                 Instruction::Gt => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(gt(left, right));
                     ip += 1;
                 }
                 Instruction::Gte => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(gte(left, right));
                     ip += 1;
                 }
                 Instruction::Lt => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(lt(left, right));
                     ip += 1;
                 }
                 Instruction::Lte => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(lte(left, right));
                     ip += 1;
                 }
                 Instruction::Call(name) if name == "print" => {
-                    let value_to_print = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let value_to_print = stack_frame.stack.pop().expect(EMPTY_STACK);
                     println!("{:?}", value_to_print);
                     ip += 1;
                 }
@@ -290,7 +293,7 @@ impl Program {
                     let function = self.functions.get(function_name.as_str()).unwrap();
                     let mut parameters = Vec::new();
                     for _ in &function.parameters {
-                        let value = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                        let value = stack_frame.stack.pop().expect(EMPTY_STACK);
                         parameters.push(value);
                     }
                     parameters.reverse();
@@ -299,20 +302,20 @@ impl Program {
                     ip += 1;
                 }
                 Instruction::And => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(and(left, right));
                     ip += 1;
                 }
                 Instruction::Or => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     stack_frame.stack.push(or(left, right));
                     ip += 1;
                 }
                 Instruction::JumpEqual(location) => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     if left == right {
                         ip = *location;
                     } else {
@@ -320,8 +323,8 @@ impl Program {
                     }
                 }
                 Instruction::JumpNotEqual(location) => {
-                    let right = stack_frame.stack.pop().expect("Stack Empty - please check IL");
-                    let left = stack_frame.stack.pop().expect("Stack Empty - please check IL");
+                    let right = stack_frame.stack.pop().expect(EMPTY_STACK);
+                    let left = stack_frame.stack.pop().expect(EMPTY_STACK);
                     if left != right {
                         ip = *location;
                     } else {
