@@ -106,6 +106,8 @@ fn add(left: Values, right: Values) -> Values {
         (Values::Int(left), Values::Int(right)) => Values::Int(left + right),
         (Values::Float(left), Values::Float(right)) => Values::Float(left + right),
         (Values::String(left), Values::String(right)) => Values::String(left + &right),
+        (Values::Int(left), Values::String(right)) => Values::String(left.to_string() + &right),
+        (Values::String(left), Values::Int(right)) => Values::String(left + &right.to_string()),
         _ => panic!("{ADDITION_NOT_SUPPORTED}"),
     }
 }

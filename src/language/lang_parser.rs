@@ -33,6 +33,20 @@ fn string_ident<'a>() -> RcParser<'a, String> {
         .ws()
 }
 
+fn quoted_string<'a>() -> RcParser<'a, Expr> {
+    let mut allowed_chars = Vec::new();
+    for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ `¬!123£4$5%6^7&8*9(0)-_=+|,<.>/?".chars() {
+        allowed_chars.push(c);
+    }
+    let chars = any_of(&allowed_chars).many1();
+
+    chars
+        .map(move |value: Vec<char>| value.into_iter().collect())
+        .ws()
+        .between(pchar('\"'), pchar('\"'))
+        .map(Expr::Str)
+}
+
 fn string_symbol<'a>() -> RcParser<'a, Expr> {
     let mut allowed_chars = Vec::new();
     for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".chars() {
@@ -148,9 +162,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
     let expr: RcParser<'a, Expr> = {
         let int_ = int();
         let symbol = string_symbol();
-        let quoted_string = string_ident()
-            .between(pchar('\"'), pchar('\"'))
-            .map(Expr::Str);
+        let quoted_string = quoted_string();
         let bool_ = bool();
 
         let mut forward = forward();

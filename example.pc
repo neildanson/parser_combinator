@@ -25,6 +25,6 @@ fn myprint(data) {
 }
 
 fn myprintagain(data) {
-    print("again")
-    print(data)
+    formatted = ("Result - " + data)
+    print(formatted)
 }
