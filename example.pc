@@ -1,4 +1,4 @@
-function main () {
+fn main () {
     counter = 1
         
     while (counter < 10) {
@@ -20,11 +20,11 @@ function main () {
         counter = (counter + 1)
     }
 }
-function myprint(data) {
+fn myprint(data) {
     myprintagain(data)
 }
 
-function myprintagain(data) {
+fn myprintagain(data) {
     print("again")
     print(data)
 }

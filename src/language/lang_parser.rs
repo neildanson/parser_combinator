@@ -220,7 +220,7 @@ pub fn body<'a>() -> RcParser<'a, Vec<Expr>> {
 }
 
 pub fn function<'a>() -> RcParser<'a, Function> {
-    let name = pstring("function")
+    let name = pstring("fn")
         .ws1()
         .right(string_ident())
         .ws()
