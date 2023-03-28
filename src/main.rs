@@ -1,4 +1,4 @@
-// Run as cargo run --  --source-file example.pc
+// Run as `cargo run --  --source-file example.pc --print-ast --print-il`
 
 use parser_combinator::language::lang_parser;
 use parser_combinator::language::*;
@@ -8,7 +8,7 @@ use std::time::Instant;
 
 use clap::*;
 
-fn _print_il(il: &[Instruction]) {
+fn print_il(il: &[Instruction]) {
     for (line, instruction) in il.iter().enumerate() {
         println!("{} \t: {:?}", line, instruction);
     }
@@ -18,9 +18,13 @@ fn _print_il(il: &[Instruction]) {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-   /// Name of the person to greet
-   #[arg(short, long)]
+   #[arg(long)]
    source_file: String,
+   #[arg(long)]
+   print_ast: bool,
+   #[arg(long)]
+   print_il: bool,
+
 }
 
 fn main() -> Result<(), String> {
@@ -39,19 +43,27 @@ fn main() -> Result<(), String> {
             let emit_start = Instant::now();
             let module = vm_emit::emit_module(module);
             let emit_end = Instant::now();
-            let _emit_time = emit_end - emit_start;
-            
-            println!(
-                "# AST   (Parsed {:?} ##############################################",
-                parse_time
-            );
-            println!("{:#?} -> {:?}", module, remaining);
-            /*println!(
-                "# IL    (Emit   {:?} ##############################################",
-                emit_time
-            );
-            print_il(&function.instructions);
-            println!("# Result #############################################");*/
+            let emit_time = emit_end - emit_start;
+
+            if args.print_ast { 
+                println!(
+                    "# AST   (Parsed {:?} ##############################################",
+                    parse_time
+                );
+                println!("{:#?} -> {:?}", module, remaining);
+            }
+
+            if args.print_il {
+                for f in module.functions.iter() {
+                println!(
+                        "# IL {:?}   (Emit   {:?} ##############################################",
+                        f.0,
+                        emit_time
+                    );
+                    print_il(&f.1.instructions);
+                }
+                println!("# Result #############################################");
+            }
             let program = Program::new(module);
 
             let run_start = Instant::now();
